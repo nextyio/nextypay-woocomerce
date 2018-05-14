@@ -5,7 +5,7 @@
  * Description: A payment gateway for Nexty.
  * Version: 1.0.0
  * Author: Thang Nguyen
- * Author URI:
+ * Author URI: https://github.com/bestboyvn87/paynext
  * Copyright: © 2018 Fredo / Nexty.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -16,45 +16,179 @@
  */
 
 
-if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
-}
-
-function admin_options() {
- ?>
- <h2><?php _e('Settings Tab','woocommerce'); ?></h2>
- <table class="form-table">
- <?php $this->generate_settings_html(); ?>
- </table> <?php
- }
-
 /**
  * Nexty Payment Gateway.
  *
  * Provides a Nexty Payment Gateway, mainly for testing purposes.
  */
  
- //add_action('woocommerce_after_checkout_validation', 'bbloomer_deny_checkout_user_pending_orders');
- 
-function bbloomer_deny_checkout_user_pending_orders( $posted ) {
-global $woocommerce;
-
-    wc_add_notice( 'Sorry, please pay your pending orders first by logging into your account', 'error');
-
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly
 }
  
- 
+////////////////////////TESTING////////////////////////////////////
+function debug_to_console( $data ) {
+    $output = $data;
+    if ( is_array( $output ) )
+        $output = implode( ',', $output);
+
+    echo "<script>console.log( 'Debug Objects: " . $output . "' );</script>";
+}
+///////////////////////////////////////////////////////////////////
+
+function add_scripts() {
+	$nexty_payment_url = plugin_dir_url( __FILE__ ) ;
+	$nexty_payment_js_url=$nexty_payment_url.'assets/js/';
+	wp_enqueue_script( 'app', $nexty_payment_js_url . 'nexty_payment.js', array('jquery'), null, true);
+    //wp_enqueue_script( 'app', get_template_directory_uri() . '/assets/js/build.min.js', array(), '1.0.0', true );
+
+    wp_localize_script( 'app', 'my_ajax_object', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+}
+add_action( 'wp_enqueue_scripts', 'add_scripts' );
+
+function ajax_action() {
+	global $wpdb;
+	$nexty_payment_url			= dirname(__FILE__);
+	$nexty_payment_js_url		= $nexty_payment_url.'/assets/js/';
+	$nexty_payment_css_url		= $nexty_payment_url.'/assets/css/';
+	$nexty_payment_includes_url = $nexty_payment_url.'/includes/' ;
+	include_once $nexty_payment_includes_url.'blockchain.php';
+	include_once $nexty_payment_includes_url.'db_functions.php';
+	$transactions_table_name= $wpdb->prefix.'transactions';
+    $order_id = $_POST['order_id'];
+	$order_total= $_POST['order_total'];
+	
+	//order just paid
+	$order = wc_get_order($order_id);
+	$order_status = $order->get_status();
+	if ($order_status==='completed') {
+		echo "2"; //sum checked before
+		exit;
+	}
+	$paid_sum=get_paid_sum_by_order_id($wpdb,$transactions_table_name,$order_id);
+	$paid=false;
+	if ($paid_sum+1E-10>=$order_total) $paid=true; //test
+	if ($paid){
+		$order->update_status( "completed", __( 'Paid Nexty payment ', $WC->domain ) );
+		echo "1";
+		echo number_format($paid_sum,2);
+	} else 
+	{
+		echo "0";
+	}
+    wp_die();
+}
+add_action('wp_ajax_my_action',        'ajax_action');
+add_action('wp_ajax_nopriv_my_action', 'ajax_action');
+////////////////////////////////////////////////////////////////////
+
+function update_nexty_db($admin_wallet_address,$min_blocks_saved_db,$max_blocks_saved_db,$blocks_loaded_each_request){
+	global $wpdb;
+	$nexty_payment_url			= dirname(__FILE__);
+	$nexty_payment_js_url		= $nexty_payment_url.'/assets/js/';
+	$nexty_payment_css_url		= $nexty_payment_url.'/assets/css/';
+	$nexty_payment_includes_url = $nexty_payment_url.'/includes/' ;
+	include_once $nexty_payment_includes_url.'blockchain.php';
+	include_once $nexty_payment_includes_url.'db_functions.php';
+	
+	$blocks_table_name = $wpdb->prefix.'blocks';
+	$transactions_table_name= $wpdb->prefix.'transactions';
+	//$string='{“walletaddress”: “0x841A13DDE9581067115F7d9D838E5BA44B537A42″,”uoid”: “48”,”amount”: “240000”}';
+	//echo strToHex($string);
+	
+	//Create table to save Blocks on the first loading of Admin
+	create_blocks_table_db($wpdb,$blocks_table_name);
+	//Create table to save Transactions on the first loading of Admin	
+	create_transactions_table_db($wpdb,$transactions_table_name);
+	
+	//API to get Informations of Blocks, Transactions 
+	$url = 'https://rinkeby.infura.io/fNuraoH3vBZU8d4MTqdt';
+	
+	//insert latest Block on the first loading of Admin, ignore all Blocks before
+	init_blocks_table_db($wpdb,$url,$blocks_table_name,$transactions_table_name,$admin_wallet_address);
+	
+	//scan from this block number
+	$start_block_number=get_max_block_number_db($wpdb,$blocks_table_name) +1;
+	//$start_block_number=2258370; //testing transaction at 2258373
+	for ($scan_block_number=$start_block_number;
+		$scan_block_number<=$start_block_number+$blocks_loaded_each_request;
+		$scan_block_number++)
+	{		
+		$hex_scan_block_number="0x".strval(dechex($scan_block_number)); //convert to hex
+		$block=get_block_by_number($url,$hex_scan_block_number);	//get Block by number with API
+		$block_content=$block['result'];
+		if (!$block_content) break;	//Stop scanning at a empty block, still not avaiable	
+		//put Block to Database, table $blocks_table_name
+		insert_block_db($wpdb,$block_content,$blocks_table_name,$transactions_table_name,$admin_wallet_address);
+	}
+	
+	// keep $min_blocks_saved_db Blocks, and delete the oldest blocks, in Admin Setting
+	delete_old_blocks_db($wpdb,$blocks_table_name,$min_blocks_saved_db,$max_blocks_saved_db);
+}
+
+add_action("woocommerce_thankyou", "xlwcty_add_custom_action_thankyou", 20);
+if(!function_exists('xlwcty_add_custom_action_thankyou')) {
+    function xlwcty_add_custom_action_thankyou($order_id) {
+		//update_nexty_db("");
+        if ($order_id > 0) {
+		$order = wc_get_order($order_id);
+		if ($order instanceof WC_Order) {
+		$order_id = $order->get_id(); // order id
+		$order_key = $order->get_order_key(); // order key
+		$order_total = $order->get_total(); // order total
+		$order_currency = $order->get_currency(); // order currency
+		$order_payment_method = $order->get_payment_method(); // order payment method
+		$order_shipping_country = $order->get_shipping_country(); // order shipping country
+		$order_billing_country = $order->get_billing_country(); // order billing country
+		$order_status = $order->get_status();// order status
+
+		/**
+		* full list methods and property that can be accessed from $order object
+		* https://docs.woocommerce.com/wc-apidocs/class-WC_Order.html
+		*/
+                ?>
+                <script type="text/javascript">
+					
+					call_ajax(new Date(),<?php echo $order_total; ?>,<?php echo $order_id; ?>,15,3 );
+					//isCheckedOut=true;
+					//console.log(isCheckedOut);
+                </script>
+                <?php
+            }
+        }
+    }
+}
+
+function example_ajax_enqueue() {
+	// Enqueue javascript on the frontend.
+	$nexty_payment_url			= dirname(__FILE__);
+	$nexty_payment_js_url		= $nexty_payment_url.'/assets/js/';
+	wp_enqueue_script(
+		'example-ajax-script',
+		$nexty_payment_js_url,
+		array('jquery')
+	);
+	// The wp_localize_script allows us to output the ajax_url path for our script to use.
+	wp_localize_script(
+		'example-ajax-script',
+		'example_ajax_obj',
+		array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) )
+	);
+}
+add_action( 'wp_enqueue_scripts', 'example_ajax_enqueue' );
+
+//Check invalid Links in Admin Settings
 function my_error_notice() {
     ?>
     <div class="error notice">
-        <p><?php _e( 'Link Address invalid!!!', 'my_plugin_textdomain' ); ?></p>
+        <p><?php _e( 'Link Address invalid!', 'my_plugin_textdomain' ); ?></p>
     </div>
     <?php
 }
 add_action( 'admin_notices', 'my_error_notice' );
 
- 
- add_action( 'wp_enqueue_scripts', function(){
+//load jquery if not loaded
+add_action( 'wp_enqueue_scripts', function(){
    wp_enqueue_script( 'jquery' );
 });
  
@@ -62,21 +196,19 @@ function hook_css(){
 	
 	$nexty_payment_url = plugin_dir_url( __FILE__ ) ;
 	$nexty_payment_css_url=$nexty_payment_url.'assets/css/';
-	wp_enqueue_style( 'style', $nexty_payment_css_url . 'nexty_payment_styles.css');
-	
+	//wp_enqueue_style( 'style', $nexty_payment_css_url . 'nexty_payment_styles.css');	
 }
 
-function hook_js(){
-	
+function hook_js(){	
 	$nexty_payment_url = plugin_dir_url( __FILE__ ) ;
 	$nexty_payment_js_url=$nexty_payment_url.'assets/js/';
-	wp_enqueue_script( 'script', $nexty_payment_js_url . 'nexty_payment.js', array('jquery'), null, true);
-	
+	wp_enqueue_script( 'script', $nexty_payment_js_url . 'nexty_payment.js', array('jquery'), null, true);	
 }
- 
+
 add_action('wp_head', 'hook_css');
-add_action('wp_footer', 'hook_js');
 add_action('admin_enqueue_scripts', 'hook_js');
+add_action('wp_enqueue_scripts', 'hook_js');
+
 add_action('plugins_loaded', 'init_custom_gateway_class');
 function init_custom_gateway_class(){
 
@@ -109,16 +241,21 @@ function init_custom_gateway_class(){
 			$this->walletAddress = $this->get_option( 'walletAddress');
 			$this->exchangeAPI = $this->get_option( 'exchangeAPI');
 			$this->endPointAddress = $this->get_option( 'endPointAddress');
+			$this->min_blocks_saved_db = $this->get_option( 'min_blocks_saved_db');
+			$this->max_blocks_saved_db = $this->get_option( 'max_blocks_saved_db');
+			$this->blocks_loaded_each_request = $this->get_option( 'blocks_loaded_each_request');
 
             // Actions
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             add_action( 'woocommerce_thankyou_custom', array( $this, 'thankyou_page' ) );
-
+			update_nexty_db($this->walletAddress,$this->min_blocks_saved_db,$this->max_blocks_saved_db,$this->blocks_loaded_each_request);
             // Customer Emails
             add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
+			// You can also register a webhook here
+			add_action( 'woocommerce_api_nextyapi', array( $this, 'webhook' ) );
 
         }
-
+		
         /**
          * Initialise Gateway Settings Form Fields.
          */
@@ -175,6 +312,7 @@ function init_custom_gateway_class(){
                     'default'     => 'https://wallet-api.nexty.io/api/exchange/NTYUSD',
                     'desc_tip'    => true,
 					'class'    => 'valid_url',
+					'id'    => 'exchangeAPI',
                 ),
 				'endPointAddress' => array(
                     'title'       => __( 'EndPointAddress', $this->domain ),
@@ -183,6 +321,28 @@ function init_custom_gateway_class(){
                     'default'     => 'https://wallet-api.nexty.io:8545',
                     'desc_tip'    => true,
 					'class'    => 'valid_url',
+					'id'    => 'endPointAddress',
+                ),
+				'min_blocks_saved_db' => array(
+                    'title'       => __( 'min_blocks_saved_db', $this->domain ),
+                    'type'        => 'number',
+                    'description' => __( 'Max total Blocks saved in Database.', $this->domain ),
+                    'default'     => '40000',
+                    'desc_tip'    => true,
+                ),
+				'max_blocks_saved_db' => array(
+                    'title'       => __( 'max_blocks_saved_db', $this->domain ),
+                    'type'        => 'number',
+                    'description' => __( 'Max total Blocks saved in Database.', $this->domain ),
+                    'default'     => '60000',
+                    'desc_tip'    => true,
+                ),
+				'blocks_loaded_each_request' => array(
+                    'title'       => __( 'blocks_loaded_each_request', $this->domain ),
+                    'type'        => 'number',
+                    'description' => __( 'Total Blocks loaded each request with Nexty included', $this->domain ),
+                    'default'     => '10',
+                    'desc_tip'    => true,
                 ),
             );
         }
@@ -203,66 +363,22 @@ function init_custom_gateway_class(){
 			</fieldset>
             <?php 
 		}
-		
-		public function elements_form() {
-		?>
-		<fieldset id="wc-<?php echo esc_attr( $this->id ); ?>-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">
-			<?php do_action( 'woocommerce_credit_card_form_start', $this->id ); ?>
 
-			<?php if ( $this->inline_cc_form ) { ?>
-				<label for="card-element">
-					<?php esc_html_e( 'Credit or debit card', 'woocommerce-gateway-stripe' ); ?>
-				</label>
-
-				<div id="stripe-card-element" style="background:#fff;padding:0 1em;border:1px solid #ddd;margin:5px 0;padding:10px 5px;">
-				<!-- a Stripe Element will be inserted here. -->
-				</div>
-			<?php } else { ?>
-				<div class="form-row form-row-wide">
-					<label><?php esc_html_e( 'Card Number', 'woocommerce-gateway-stripe' ); ?> <span class="required">*</span></label>
-					<div class="stripe-card-group">
-						<div id="stripe-card-element" style="background:#fff;padding:0 1em;border:1px solid #ddd;margin:5px 0;padding:10px 5px;">
-						<!-- a Stripe Element will be inserted here. -->
-						</div>
-
-						<i class="stripe-credit-card-brand stripe-card-brand" alt="Credit Card"></i>
-					</div>
-				</div>
-
-				<div class="form-row form-row-first">
-					<label><?php esc_html_e( 'Expiry Date', 'woocommerce-gateway-stripe' ); ?> <span class="required">*</span></label>
-
-					<div id="stripe-exp-element" style="background:#fff;padding:0 1em;border:1px solid #ddd;margin:5px 0;padding:10px 5px;">
-					<!-- a Stripe Element will be inserted here. -->
-					</div>
-				</div>
-
-				<div class="form-row form-row-last">
-					<label><?php esc_html_e( 'Card Code (CVC)', 'woocommerce-gateway-stripe' ); ?> <span class="required">*</span></label>
-				<div id="stripe-cvc-element" style="background:#fff;padding:0 1em;border:1px solid #ddd;margin:5px 0;padding:10px 5px;">
-				<!-- a Stripe Element will be inserted here. -->
-				</div>
-				</div>
-				<div class="clear"></div>
-			<?php } ?>
-
-			<!-- Used to display form errors -->
-			<div class="stripe-source-errors" role="alert"></div>
-			<?php do_action( 'woocommerce_credit_card_form_end', $this->id ); ?>
-			<div class="clear"></div>
-		</fieldset>
-		<?php
-	}
         /**
          * Output for the order received page.
          */
         public function thankyou_page($order) {
             if ( $this->instructions ){
+				$order_status = wc_get_order( $order)->status;
 				//echo wpautop( wptexturize( $this->instructions ) );
+				if ($order_status=='completed') {
+					echo wpautop( wptexturize( 'payment successful!!!') );
+				} else
 				{
 					//Informations of Backend
 					echo wpautop( wptexturize( $this->walletAddress ) );
 					echo wpautop( wptexturize( $this->exchangeAPI ) );
+					echo wpautop( wptexturize( $this->endPointAddress ) );
 					echo wpautop( wptexturize( $this->endPointAddress ) );
 					$order_id = wc_get_order( $order)->id;
 					$order_total = intval(wc_get_order( $order)->total);
@@ -273,13 +389,15 @@ function init_custom_gateway_class(){
 					$QRtext='{"walletaddress": "'.$this->walletAddress.'","uoid": "'.$order_id.'","amount": "'.$order_total.'"}  ';
 					$QRtextencode= urlencode ( $QRtext );
 					echo wpautop( wptexturize($QRtext ) );
+					echo str_replace( 'https:', 'http:', add_query_arg( 'wc-api', 'nextyapi', home_url( '/' ) ) );
 					
 					//$nexty_payment_url = plugin_dir_url( __FILE__ ) ;
 					//$nexty_payment_qr_url=$nexty_payment_url.'includes/phpqrcode/qrlib.php';
-					    //require_once ($nexty_payment_qr_url); 
+					//require_once ($nexty_payment_qr_url); 
      
-    // outputs image directly into browser, as PNG stream 
-   echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='.$QRtextencode.'&choe=UTF-8" title="Link to Google.com" />' ) );
+					// outputs QR code image directly into browser, as PNG stream 
+					echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='
+					.$QRtextencode.'&choe=UTF-8" title="Link to Google.com" />' ) );
 					//echo wc_get_order( $order);
 				}
 			}
@@ -304,19 +422,7 @@ function init_custom_gateway_class(){
             if ( $description = $this->get_description() ) {
                 echo wpautop( wptexturize( $description ) );
             }
-			$this->nexty_payment_form();
-           /* ?>
-            <div id="custom_input">
-                <p class="form-row form-row-wide">
-                    <label for="mobile" class=""><?php _e('Mobile Number', $this->domain); ?></label>
-                    <input type="text" class="variations" name="mobile" id="fname" placeholder="" value="">
-                </p>
-                <p class="form-row form-row-wide">
-                    <label for="transaction" class=""><?php _e('Transaction ID', $this->domain); ?></label>
-                    <input type="text" class="" name="transaction" id="transaction" placeholder="" value="">
-                </p>
-            </div>
-            <?php */
+			//$this->nexty_payment_form();
         } 
 
         /**
@@ -335,7 +441,7 @@ function init_custom_gateway_class(){
             $order->update_status( "on-hold", __( 'Awaiting Nexty payment ', $this->domain ) );
 
             // Reduce stock levels
-            $order->reduce_order_stock();
+            //$order->reduce_order_stock();
 
             // Remove cart
             WC()->cart->empty_cart();
@@ -346,6 +452,25 @@ function init_custom_gateway_class(){
                 'redirect'  => $this->get_return_url( $order )
             );
         }
+		public function webhook() {
+			return; //disable callback for pending payment
+			global $woocommerce;
+			$order_explosive = explode( '_', $_GET['id'] );
+			$order_id = absint( $order_explosive[0] );
+			$order    = wc_get_order( $order_id );
+			//$order = wc_get_order( $_GET['id'] );
+			// https://localhost/wp/wc-api/nextyapi/?id=41
+			debug_to_console($order);
+			//echo "10";
+			$order->update_status( "completed", __( 'Paid Nexty payment ', $this->domain ) );
+			//$order->payment_complete();
+			//$order->reduce_order_stock();
+			//$order_complete = $this->process_order_status( $order );
+			$redirect_url = $this->get_return_url( $order );
+			wp_redirect( $redirect_url );
+			//$this->log->add( $this->id, 'Order complete' );
+			//update_option('webhook_debug', $_GET);
+		}
     }
 }
 
@@ -357,17 +482,11 @@ function add_custom_gateway_class( $methods ) {
 
 add_action('woocommerce_checkout_process', 'process_custom_payment');
 function process_custom_payment(){
-
+	return;
     if($_POST['payment_method'] != 'custom')
         return;
 	//Valid inputs
-    if( !isset($_POST['mobile']) || empty($_POST['mobile']) )
-        wc_add_notice( __( 'Please add your mobile number', $this->domain ), 'error' );
-
-
-    if( !isset($_POST['transaction']) || empty($_POST['transaction']) )
-        wc_add_notice( __( 'Please add your transaction ID', $this->domain ), 'error' );
-
+	return; //disable callback for pending payment
 }
 
 /**
@@ -379,13 +498,7 @@ function custom_payment_update_order_meta( $order_id ) {
     if($_POST['payment_method'] != 'custom')
         return;
 
-    // echo "<pre>";
-    // print_r($_POST);
-    // echo "</pre>";
-    // exit();
-
-    update_post_meta( $order_id, 'mobile', $_POST['mobile'] ."test");
-    update_post_meta( $order_id, 'transaction', $_POST['transaction'] );
+	return; //disable callback for pending payment
 }
 
 /**
@@ -394,12 +507,7 @@ function custom_payment_update_order_meta( $order_id ) {
 add_action( 'woocommerce_admin_order_data_after_billing_address', 'custom_checkout_field_display_admin_order_meta', 10, 1 );
 function custom_checkout_field_display_admin_order_meta($order){
     $method = get_post_meta( $order->id, '_payment_method', true );
-    if($method != 'custom')
-        return;
-
-    $mobile = get_post_meta( $order->id, 'mobile', true );
-    $transaction = get_post_meta( $order->id, 'transaction', true );
-
-    echo '<p><strong>'.__( 'Mobile Number' ).':</strong> ' . $mobile .  '</p>';
-    echo '<p><strong>'.__( 'Transaction ID').':</strong> ' . $transaction . '</p>';
+    if($method != 'custom') return;
+	
+	return; //disable callback for pending payment
 }
