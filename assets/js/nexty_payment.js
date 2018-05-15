@@ -19,6 +19,7 @@ function countInSecond(startTime,endTime) {
 }
 
 //check paid sum and order status with ajax, in PHP ajax_action()
+
 function call_ajax(startTime,order_total,order_id,timeout,interval){
 	var seconds=countInSecond(startTime,new Date());
 	console.log(seconds);
@@ -39,13 +40,14 @@ function call_ajax(startTime,order_total,order_id,timeout,interval){
 		}
 		}).done(function ( response ) {
 			console.log(response);
+			//alert (response);
 			paid=response;
 			if (paid[0]=="0") { return call_ajax(startTime,order_total,order_id,timeout,interval); } else 
 			{
 				console.log(response);
 				//alert(response);
 				var current_page= window.location.href;
-				if (paid[0]=='1') window.location = current_page;
+				window.location = current_page;
 				//alert (test);
 				return;
 			}
@@ -56,7 +58,7 @@ function call_ajax(startTime,order_total,order_id,timeout,interval){
 }
 
 jQuery(function($) {
-	
+	//alert("test");
 	$(".notice").hide(); //Hide Admin Notice
 	
 	var valid_endPointAddress=validURL($("#woocommerce_custom_endPointAddress").val());
