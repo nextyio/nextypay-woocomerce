@@ -22,6 +22,7 @@ function hexToStr($hex){
 }
 
 function create_transactions_table_db($wpdb,$transactions_table_name){
+	
 	$table_name = $transactions_table_name;
 	
 	//if not exist
@@ -46,6 +47,7 @@ function create_transactions_table_db($wpdb,$transactions_table_name){
 		dbDelta( $sql );
 		debug_to_console( $sql);
 	}
+	
 }
 
 function create_blocks_table_db($wpdb,$blocks_table_name){
@@ -70,12 +72,14 @@ function create_blocks_table_db($wpdb,$blocks_table_name){
 		dbDelta( $sql );
 		debug_to_console( $sql);
 	}
+	
 }
 
 function get_order_id_from_input($input_hash){
 	
 	//{“walletaddress”: “0x841A13DDE9581067115F7d9D838E5BA44B537A42″,”uoid”: “46”,”amount”: “80000”}
-	$input=(hexToStr($input_hash));
+	$input=(hexToStr($input_hash))."<br>";
+	//echo $input;
 	$input = str_replace(' ', '', $input);
 	$input = str_replace('{', '', $input);
 	$input = str_replace('}', '', $input);
@@ -85,9 +89,23 @@ function get_order_id_from_input($input_hash){
 	
 	foreach($input_arr as $str)
 	{
+		//echo $str."<br>";
 		$tmp= explode(":",$str);
-		if (str_replace('"', '',$tmp[0])==$key) return str_replace('"', '',$tmp[1]);
+		$delete_list=array('"','“','″','”');
+		$get_key=str_replace($delete_list, '',$tmp[0]);
+		//echo $get_key."<br>";
+		if (str_replace($delete_list,'',$tmp[0])==$key) return str_replace($delete_list, '',$tmp[1]);
 	}
+	return false;
+	
+}
+
+function transaction_exist($wpdb,$transactions_table_name,$hash){
+	
+	$sql= "SELECT hash FROM $transactions_table_name
+			WHERE hash='$hash'";
+	$result = $wpdb->get_var($sql);
+	if ($result==$hash) return true;
 	return false;
 	
 }
@@ -104,18 +122,21 @@ function insert_transactions_db($wpdb,$transactions,$transactions_table_name,$ad
 		$value=$transaction['value'];
 		$time=$block_time;
 		$hash=$transaction['hash'];
+		$extra_data=$transaction['input'];
 		$order_id=get_order_id_from_input($transaction['input']);
-	
-		$wpdb->insert("$transactions_table_name", array(
-	    'block_number' 	=> hexdec($block_number),
-		'block_hash' 	=> $block_hash,
-		'hash' 			=> $hash,
-		'from_wallet' 	=> $from_wallet,
-		'to_wallet' 	=> $to_wallet,
-		'value' 		=> $value,
-		'time' 			=> $time,
-		'order_id' 		=> $order_id,
-		));
+		
+		if (!transaction_exist($wpdb,$transactions_table_name,$hash)){
+			$wpdb->insert("$transactions_table_name", array(
+			'block_number' 	=> hexdec($block_number),
+			'block_hash' 	=> $block_hash,
+			'hash' 			=> $hash,
+			'from_wallet' 	=> $from_wallet,
+			'to_wallet' 	=> $to_wallet,
+			'value' 		=> $value,
+			'time' 			=> $time,
+			'order_id' 		=> $order_id,
+			));
+		}
 	}
 	
 }
@@ -195,9 +216,11 @@ function get_paid_sum_by_order_id($wpdb,$transactions_table_name,$order_id){
 	$sum=0;
 	foreach ($results as $key){
 		$value=hexdec($key->value);
+		//echo $value;
 		$sum=$sum+$value;
 	}
-return $sum;
+	return $sum;
+
 }
 
 function init_blocks_table_db($wpdb,$url,$blocks_table_name,$transactions_table_name,$admin_wallet_address){
@@ -210,5 +233,71 @@ function init_blocks_table_db($wpdb,$url,$blocks_table_name,$transactions_table_
 	$block_content=$block['result'];
 	insert_block_db($wpdb,$block_content,$blocks_table_name,$transactions_table_name,$admin_wallet_address);
 	
+}
+
+function get_last_update_exchange_db($wpdb,$wc_currency,$exchange_table_name){
+	
+	$table_name = $exchange_table_name;
+	$sql="SELECT MAX(time) AS max FROM $table_name";
+    $result = $wpdb->get_var($sql);
+	return $result;
+	
+}
+
+function update_exchange_to_usd_table_db($wpdb,$wc_currency,$exchange_table_name,$interval_in_min){
+	
+	$last_update=get_last_update_exchange_db($wpdb,$wc_currency,$exchange_table_name);
+	$from_time = strtotime($last_update);
+	$to_time = date("Y-m-d H:i:s");
+	$time_diff_in_min=round(abs($to_time - $from_time) / 60,2);
+	if ($time_diff_in_min>$interval_in_min){ // update every interval_in_min 
+		$value=number_format(wc_currency_to_usd($wc_currency,1),10);
+		$sql="UPDATE $exchange_table_name 
+			SET value=$value 
+			WHERE from_currency='$wc_currency'";
+		$wpdb->query($sql);
+		//echo $sql;
+	}
+	
+}
+
+function get_exchange_to_usd_db($wpdb,$wc_currency,$exchange_table_name){
+	
+	$sql= "SELECT value FROM $exchange_table_name
+			WHERE from_currency='$wc_currency'";
+	$result = $wpdb->get_var($sql);
+	return $result;
+	
+}
+function create_exchange_to_usd_table_db($wpdb,$wc_currency,$exchange_table_name){
+	
+	if (!is_table_empty_db($wpdb,$exchange_table_name)) return ;
+	$table_name = $exchange_table_name;
+	//echo $table_name;
+	//if not exist
+	if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+		//table not in database. Create new table
+		$charset_collate = $wpdb->get_charset_collate();
+	 
+		$sql = "CREATE TABLE $table_name 
+			(
+			  id mediumint(9) NOT NULL AUTO_INCREMENT,
+			  from_currency text NOT NULL,
+			  value float NOT NULL,
+			  time DATETIME NOT NULL,
+			  UNIQUE KEY id (id)
+			) $charset_collate;";
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
+		debug_to_console( $sql);
+	}
+	//echo $sql;
+	$value=wc_currency_to_usd($wc_currency,1);
+	$wpdb->insert("$table_name", array(
+    'from_currency' 		=> $wc_currency,
+    'value' 			=> $value,
+    'time' 		=> date("Y-m-d H:i:s"),
+	));
+		
 }
 ?>
