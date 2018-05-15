@@ -16,15 +16,16 @@
  */
 
 
+ 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly
+}
+
 /**
  * Nexty Payment Gateway.
  *
  * Provides a Nexty Payment Gateway, mainly for testing purposes.
  */
- 
-if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
-}
  
 ////////////////////////TESTING////////////////////////////////////
 function debug_to_console( $data ) {
@@ -45,6 +46,12 @@ function add_scripts() {
     wp_localize_script( 'app', 'my_ajax_object', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 add_action( 'wp_enqueue_scripts', 'add_scripts' );
+function my_custom_js() {
+	$nexty_payment_url = plugin_dir_url( __FILE__ ) ;
+	$nexty_payment_js_url=$nexty_payment_url.'assets/js/';
+    echo '<script type="text/javascript" src="'.$nexty_payment_js_url."nexty_payment.js".'"></script>';
+}
+add_action('wp_head', 'my_custom_js');
 
 function ajax_action() {
 	global $wpdb;
@@ -52,32 +59,51 @@ function ajax_action() {
 	$nexty_payment_js_url		= $nexty_payment_url.'/assets/js/';
 	$nexty_payment_css_url		= $nexty_payment_url.'/assets/css/';
 	$nexty_payment_includes_url = $nexty_payment_url.'/includes/' ;
+	include_once $nexty_payment_includes_url.'exchange.php';
 	include_once $nexty_payment_includes_url.'blockchain.php';
 	include_once $nexty_payment_includes_url.'db_functions.php';
-	$transactions_table_name= $wpdb->prefix.'transactions';
+	$blocks_table_name 		= $wpdb->prefix.'woocommerce_nexty_payment_blocks';
+	$transactions_table_name= $wpdb->prefix.'woocommerce_nexty_payment_transactions';
+	$exchange_table_name	= $wpdb->prefix.'woocommerce_nexty_payment_exchange_to_usd';
+	
     $order_id = $_POST['order_id'];
 	$order_total= $_POST['order_total'];
-	
-	//order just paid
+	$wc_currency=get_woocommerce_currency();
 	$order = wc_get_order($order_id);
 	$order_status = $order->get_status();
+	
 	if ($order_status==='completed') {
 		echo "2"; //sum checked before
 		exit;
 	}
-	$paid_sum=get_paid_sum_by_order_id($wpdb,$transactions_table_name,$order_id);
+	
+	$paid_sum_hex=get_paid_sum_by_order_id($wpdb,$transactions_table_name,$order_id);
+	$paid_sum_coin=number_format(hex_to_coin($paid_sum_hex),15);
 	$paid=false;
-	if ($paid_sum+1E-10>=$order_total) $paid=true; //test
+	$epsilon=1E-2;
+	$order_total_in_usd=$order_total*get_exchange_to_usd_db($wpdb,$wc_currency,$exchange_table_name);
+	$nexty_id='2714';
+	$eth_id='1027';
+	$paid_in_usd=coinmarketcap_id_to_usd($eth_id,$paid_sum_coin);
+	
+	/////////////////////////////////
+	$test_echo="";
+	$test_echo=$test_echo. "ETH paid=".$paid_sum."///////////";
+	$test_echo=$test_echo. "ETH paid=".$paid_sum_coin."///////////";
+	$test_echo=$test_echo. "paid in usd= $paid_in_usd order total in usd = $order_total_in_usd <br>";
+	if ($paid_in_usd+$epsilon>=$order_total_in_usd) $paid=true; //test
 	if ($paid){
 		$order->update_status( "completed", __( 'Paid Nexty payment ', $WC->domain ) );
-		echo "1";
-		echo number_format($paid_sum,2);
+		echo "1"; //payment successful
+		echo $test_echo;
 	} else 
 	{
-		echo "0";
+		echo "0"; //not enough paid
+		echo $test_echo;
 	}
     wp_die();
 }
+
 add_action('wp_ajax_my_action',        'ajax_action');
 add_action('wp_ajax_nopriv_my_action', 'ajax_action');
 ////////////////////////////////////////////////////////////////////
@@ -90,17 +116,23 @@ function update_nexty_db($admin_wallet_address,$min_blocks_saved_db,$max_blocks_
 	$nexty_payment_includes_url = $nexty_payment_url.'/includes/' ;
 	include_once $nexty_payment_includes_url.'blockchain.php';
 	include_once $nexty_payment_includes_url.'db_functions.php';
+	include_once $nexty_payment_includes_url.'exchange.php';
+	$blocks_table_name 		= $wpdb->prefix.'woocommerce_nexty_payment_blocks';
+	$transactions_table_name= $wpdb->prefix.'woocommerce_nexty_payment_transactions';
+	$exchange_table_name	= $wpdb->prefix.'woocommerce_nexty_payment_exchange_to_usd';
+
+	$wc_currency = get_woocommerce_currency();
 	
-	$blocks_table_name = $wpdb->prefix.'blocks';
-	$transactions_table_name= $wpdb->prefix.'transactions';
-	//$string='{“walletaddress”: “0x841A13DDE9581067115F7d9D838E5BA44B537A42″,”uoid”: “48”,”amount”: “240000”}';
 	//echo strToHex($string);
 	
 	//Create table to save Blocks on the first loading of Admin
 	create_blocks_table_db($wpdb,$blocks_table_name);
 	//Create table to save Transactions on the first loading of Admin	
 	create_transactions_table_db($wpdb,$transactions_table_name);
+	//Create table to save currency exchange from http://free.currencyconverterapi.com/api/v5/convert?q=EUR_USD&compact=y
+	create_exchange_to_usd_table_db($wpdb,$wc_currency,$exchange_table_name);
 	
+	update_exchange_to_usd_table_db($wpdb,$wc_currency,$exchange_table_name,1);
 	//API to get Informations of Blocks, Transactions 
 	$url = 'https://rinkeby.infura.io/fNuraoH3vBZU8d4MTqdt';
 	
@@ -109,9 +141,11 @@ function update_nexty_db($admin_wallet_address,$min_blocks_saved_db,$max_blocks_
 	
 	//scan from this block number
 	$start_block_number=get_max_block_number_db($wpdb,$blocks_table_name) +1;
-	//$start_block_number=2258370; //testing transaction at 2258373
+	//load from this block. delete if load from max block number in database
+	$start_block_number=2285550; //testing transaction at 2285555 
 	for ($scan_block_number=$start_block_number;
-		$scan_block_number<=$start_block_number+$blocks_loaded_each_request;
+		//$scan_block_number<=$start_block_number+$blocks_loaded_each_request;
+		$scan_block_number<=$start_block_number+$blocks_loaded_each_request; //test
 		$scan_block_number++)
 	{		
 		$hex_scan_block_number="0x".strval(dechex($scan_block_number)); //convert to hex
@@ -132,15 +166,10 @@ if(!function_exists('xlwcty_add_custom_action_thankyou')) {
 		//update_nexty_db("");
         if ($order_id > 0) {
 		$order = wc_get_order($order_id);
-		if ($order instanceof WC_Order) {
-		$order_id = $order->get_id(); // order id
-		$order_key = $order->get_order_key(); // order key
-		$order_total = $order->get_total(); // order total
-		$order_currency = $order->get_currency(); // order currency
-		$order_payment_method = $order->get_payment_method(); // order payment method
-		$order_shipping_country = $order->get_shipping_country(); // order shipping country
-		$order_billing_country = $order->get_billing_country(); // order billing country
 		$order_status = $order->get_status();// order status
+		$order_total = $order->get_total(); // order total
+		$order_id = $order->get_id(); // order id
+		if (($order instanceof WC_Order) && ($order_status!='completed')) {
 
 		/**
 		* full list methods and property that can be accessed from $order object
@@ -150,32 +179,12 @@ if(!function_exists('xlwcty_add_custom_action_thankyou')) {
                 <script type="text/javascript">
 					
 					call_ajax(new Date(),<?php echo $order_total; ?>,<?php echo $order_id; ?>,15,3 );
-					//isCheckedOut=true;
-					//console.log(isCheckedOut);
                 </script>
                 <?php
             }
         }
     }
 }
-
-function example_ajax_enqueue() {
-	// Enqueue javascript on the frontend.
-	$nexty_payment_url			= dirname(__FILE__);
-	$nexty_payment_js_url		= $nexty_payment_url.'/assets/js/';
-	wp_enqueue_script(
-		'example-ajax-script',
-		$nexty_payment_js_url,
-		array('jquery')
-	);
-	// The wp_localize_script allows us to output the ajax_url path for our script to use.
-	wp_localize_script(
-		'example-ajax-script',
-		'example_ajax_obj',
-		array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) )
-	);
-}
-add_action( 'wp_enqueue_scripts', 'example_ajax_enqueue' );
 
 //Check invalid Links in Admin Settings
 function my_error_notice() {
@@ -205,9 +214,9 @@ function hook_js(){
 	wp_enqueue_script( 'script', $nexty_payment_js_url . 'nexty_payment.js', array('jquery'), null, true);	
 }
 
-add_action('wp_head', 'hook_css');
+//add_action('wp_head', 'hook_css');
 add_action('admin_enqueue_scripts', 'hook_js');
-add_action('wp_enqueue_scripts', 'hook_js');
+//add_action('wp_enqueue_scripts', 'hook_js');
 
 add_action('plugins_loaded', 'init_custom_gateway_class');
 function init_custom_gateway_class(){
@@ -252,7 +261,8 @@ function init_custom_gateway_class(){
             // Customer Emails
             add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
 			// You can also register a webhook here
-			add_action( 'woocommerce_api_nextyapi', array( $this, 'webhook' ) );
+			//add_action( 'woocommerce_api_nextyapi', array( $this, 'webhook' ) );
+			
 
         }
 		
@@ -387,17 +397,19 @@ function init_custom_gateway_class(){
 					echo wpautop( wptexturize($order_total ) );
 					echo wpautop( wptexturize($order_status ) );
 					$QRtext='{"walletaddress": "'.$this->walletAddress.'","uoid": "'.$order_id.'","amount": "'.$order_total.'"}  ';
+					$QRtext_hex="0x".strToHex($QRtext);
 					$QRtextencode= urlencode ( $QRtext );
 					echo wpautop( wptexturize($QRtext ) );
+					echo wpautop( wptexturize($QRtext_hex ) );
 					echo str_replace( 'https:', 'http:', add_query_arg( 'wc-api', 'nextyapi', home_url( '/' ) ) );
 					
 					//$nexty_payment_url = plugin_dir_url( __FILE__ ) ;
 					//$nexty_payment_qr_url=$nexty_payment_url.'includes/phpqrcode/qrlib.php';
 					//require_once ($nexty_payment_qr_url); 
-     
 					// outputs QR code image directly into browser, as PNG stream 
 					echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='
 					.$QRtextencode.'&choe=UTF-8" title="Link to Google.com" />' ) );
+					echo strToHex('{“walletaddress”: “0x841A13DDE9581067115F7d9D838E5BA44B537A42″,”uoid”: “52”,”amount”: “80000”}');
 					//echo wc_get_order( $order);
 				}
 			}
