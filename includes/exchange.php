@@ -1,17 +1,10 @@
 <?php
-function coinmarketcap_id_to_usd($id,$amount){
-	$str="https://api.coinmarketcap.com/v2/ticker/".$id."/?convert=usd";
+function coinmarketcap_coin_to_store_currency($id,$store_currency){
+	$curr_upper=strtoupper($store_currency);
+	$str="https://api.coinmarketcap.com/v2/ticker/".$id."/?convert=".$curr_upper;
 	$result=json_decode((file_get_contents($str)),true);
 
-	return $amount*$result['data']['quotes']['USD']['price'];
-}
-
-//http://free.currencyconverterapi.com
-function wc_currency_to_usd($wc_currency,$amount){
-	$str='http://free.currencyconverterapi.com/api/v5/convert?q='.$wc_currency .'_USD&compact=y';
-	$result=json_decode((file_get_contents($str)),true);
-	$key=$wc_currency.'_'."USD";
-	return $amount*$result[$key]['val'];
+	return $result['data']['quotes']["$curr_upper"]['price'];
 }
 
 function hex_to_coin($value){
