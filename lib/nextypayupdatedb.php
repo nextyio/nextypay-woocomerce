@@ -1,5 +1,5 @@
 <?php
-class Nextypayupdatedb extends Model{
+class Nextypayupdatedb{
   public static $instance;
   //inputs list
 
@@ -54,36 +54,27 @@ class Nextypayupdatedb extends Model{
 ////////////////////sql query DB,depending on Framework
 
   private function query_db($sql){
+    //global $wpdb;
     return $this->_connection->query($sql);
   }
 
   private function get_value_query_db($sql){
-    $result= $this->_connection->query($sql);
-    return $result->row['output'];
+    //global $wpdb;
+    $result= $this->_connection->get_var($sql);
+    return $result;
   }
 
   private function get_values_query_db($sql){
-    $results= $this->_connection->query($sql);
-    return $results->rows;
+    //global $wpdb;
+    $results= $this->_connection->get_results($sql);
+    return $results;
   }
 
 //////////////////change order_status to Complete, depending on Framework
   public function order_status_to_complete($order_id){
-    $table_name=DB_PREFIX."order";
-    $complete_status_id=$this->get_complete_status_id();
-    $sql="UPDATE $table_name SET order_status_id='$complete_status_id' WHERE order_id='$order_id'";
-    $this->query_db($sql);
-    /*$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-    $order = $objectManager->create('\Magento\Sales\Model\Order') ->load($order_id);
-    $order->setStatus('complete');
-    $order->save();
-    if (!$order->getId()) {return;}
-    $order_total=$order->getGrandTotal(); ///SHOP CURRENCY
-    $order_total;
-    $connection = $this->get_connection_db();
-    $transactions_table_name ="nexty_payment_transactions";
-    $paid_sum=$this->get_paid_sum_by_order_id($order_id);
-    return $paid_sum.$order_total;*/
+    $order = new WC_Order($order_id);
+    $order->update_status('completed');
+    return;
   }
 
 //GET Functions
@@ -96,7 +87,7 @@ class Nextypayupdatedb extends Model{
     return $this->_db_prefix.'transactions';
   }
 
-  private function get_blocks_table_name(){
+  public function get_blocks_table_name(){
     return $this->_db_prefix.'blocks';
   }
 
@@ -176,18 +167,20 @@ class Nextypayupdatedb extends Model{
 
   }
 
-  private function get_paid_sum_by_order_id($order_id){
+  public function get_paid_sum_by_order_id($order_id){
 
     $table_name=$this->get_transactions_table_name();
     $sql = "SELECT value FROM $table_name
           WHERE order_id='$order_id'";
     $results=$this->get_values_query_db($sql);
-
+//return json_encode($results);
     $sum=0;
     foreach ($results as $result){
-      $value_hex=$result['value'];
+      //$value_hex=$result['value'];
+      $value_hex=$result->value;
       $value=(hexdec($value_hex))*1e-18;
       $sum=$sum+$value;
+      //return $value;
     }
     return $sum;
 
@@ -232,6 +225,8 @@ class Nextypayupdatedb extends Model{
           WHERE order_id='$order_id'";
 
     $results = $this->get_values_query_db($sql);
+    //echo $sql;
+    //echo json_encode($results);
     if (count($results)>0) return true;
     return false;
 
@@ -309,7 +304,11 @@ class Nextypayupdatedb extends Model{
 
   }
 
+//depending on Framework
   public function is_order_completed($order_id){
+    $order=wc_get_order( $order_id );
+    $order_status = wc_get_order( $order)->status;
+    return ($order_status=='completed');
     $complete_status_id=$this->get_complete_status_id();
     $status=$this->get_order_status_by_id($order_id);
     return ($complete_status_id==$status);
@@ -318,11 +317,16 @@ class Nextypayupdatedb extends Model{
   public function is_paid_sum_enough($order_id){
 
     if ($this->is_order_completed($order_id)) return true;
-    $paid_sum=$this->get_paid_sum_by_order_id($order_id);
-    $order_total_in_coin=$this->get_order_in_coin($order_id);
 
+    $paid_sum=$this->get_paid_sum_by_order_id($order_id);
+    if (!is_numeric($paid_sum)) {$paid_sum=-1;$order_total_in_coin=0;}
+
+    $order_total_in_coin=$this->get_order_in_coin($order_id);
+    if (!is_numeric($order_total_in_coin)) {$paid_sum=-1;$order_total_in_coin=0;}
+    //return $paid_sum."a". $order_total_in_coin;
+//return true;
     //Set epsilon
-    $epsilon=1e-5;
+    $epsilon=1e-10;
 
     //check if payment success
     $paid_enough= ($paid_sum+$epsilon>$order_total_in_coin);
@@ -341,11 +345,12 @@ class Nextypayupdatedb extends Model{
 
   }
 
-  private function count_total_blocks_db(){
+  public function count_total_blocks_db(){
 
     $table_name = $this->get_blocks_table_name();
     $sql="SELECT COUNT('id') AS output FROM $table_name";
     $result = $this->get_value_query_db($sql);
+    //return $sql;
     return $result;
 
   }
@@ -366,10 +371,9 @@ class Nextypayupdatedb extends Model{
 
   }
 
-  private function init_blocks_table_db(){
+  public function init_blocks_table_db(){
 
     if ($this->count_total_blocks_db()>0) return;
-
     $max_block_number = $this->_blockchain->get_max_block_number($this->_url);
     $hex_max_block_number="0x".strval(dechex($max_block_number));
     $block=$this->_blockchain->get_block_by_number($this->_url,$hex_max_block_number);
@@ -385,7 +389,7 @@ class Nextypayupdatedb extends Model{
     $to_scan_number=$this->_blocks_loaded_each_request;
     //scan from this block number
     $start_number=$this->get_max_block_number_db()+1 ;
-    //$start_number=2419899; //testing transaction at xxxxxxxx2419899
+    //$start_number=2447115; //testing transaction at xxxxxxxx2419899 2447116
 
     for ($scanning_number=$start_number;
         $scanning_number<$start_number+$to_scan_number; //test
