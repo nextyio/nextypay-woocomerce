@@ -19,6 +19,67 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
+add_filter( 'woocommerce_get_order_totals', 'bbloomer_add_recurring_row_email', 10, 2 );
+
+function bbloomer_add_recurring_row_email( $total_rows, $myorder_obj ) {
+
+$total_rows['recurr_not'] = array(
+    'label' => __( 'Rec:', 'woocommerce' ),
+    'value' => 'blabla'
+);
+
+return $total_rows;
+}
+
+//add_filter( 'woocommerce_get_order_item_totals', 'add_custom_order_totals_row', 30, 3 );
+function add_custom_order_totals_row( $total_rows, $order, $tax_display ) {
+    $costs = 1.01;
+
+    // Set last total row in a variable and remove it.
+    $gran_total = $total_rows['order_total'];
+    unset( $total_rows['order_total'] );
+
+    // Insert a new row
+    $total_rows['recurr_not'] = array(
+        'label' => __( 'Total HT :', 'woocommerce' ),
+        'value' => wc_price( ( $order->get_total() - $order->get_total_tax() ) * $costs  ),
+    );
+
+    // Set back last total row
+    $total_rows['order_total'] = $gran_total;
+
+    return $total_rows;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//add_filter('woocommerce_currency_symbol', 'change_existing_currency_symbol', 10, 2);
+
+function change_existing_currency_symbol( $currency_symbol, $currency ) {
+     /*switch( $currency ) {
+          case 'NTY': $currency_symbol = 'NTY'; break;
+     }*/
+     $currency_symbol = 'NTY ';
+     return $currency_symbol;
+}
+
+/**
+ * Custom currency and currency symbol
+ */
+add_filter( 'woocommerce_currencies', 'add_my_currency' );
+
+function add_my_currency( $currencies ) {
+     $currencies['NTY'] = __( 'Nexty Coin', 'woocommerce' );
+     return $currencies;
+}
+
+add_filter('woocommerce_currency_symbol', 'add_my_currency_symbol', 10, 2);
+
+function add_my_currency_symbol( $currency_symbol, $currency ) {
+     switch( $currency ) {
+          case 'NTY': $currency_symbol = 'NTY'; break;
+     }
+     return $currency_symbol;
+}
+
 function plugin_add_settings_link( $links ) {
     $settings_link = '<a href="admin.php?page=wc-settings&tab=checkout&section=nextypay">Settings</a>';
     array_push( $links, $settings_link );
@@ -260,6 +321,30 @@ function init_nexty_payment_class(){
           */
         }
 
+        private function add_NTY_to_order_details( $data ) {
+              // Set last total row in a variable and remove it.
+              $gran_total = $total_rows['order_total'];
+              unset( $total_rows['order_total'] );
+
+              // Insert a new row
+              $total_rows['recurr_not'] = array(
+                  'label' => __( 'Total NTY :', 'woocommerce' ),
+                  'value' => __($data['total_in_coin']." NTY",'woocommerce' ),
+              );
+
+              $total_rows['recurr_not'] = array(
+                  'label' => __( 'Total :', 'woocommerce' ),
+                  'value' => wc_price( ( $order->get_total() - $order->get_total_tax() ) * $costs  ),
+              );
+
+              // Set back last total row
+              $total_rows['order_total'] = $gran_total;
+
+              return $total_rows;
+
+        }
+
+
         /**
          * Output for the order received page.
          */
@@ -303,10 +388,33 @@ function init_nexty_payment_class(){
             $data['QRtext_hex']="0x".$_functions->strToHex($data['QRtext']);
             $data['QRtextencode']= urlencode ( $data['QRtext'] );
 
-            echo wpautop( wptexturize( 'Waiting for your Payment... Page will be redirected after the payment.' ) );
+            echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>".' Waiting for your Payment... Page will be redirected after the payment.' ) );
             echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='
             .$data['QRtextencode'].'&choe=UTF-8" title="Link to Google.com" />' ) );
+            add_action( 'woocommerce_get_order_item_totals', function() use ($data,$order) {
+              // Set last total row in a variable and remove it.
+              $gran_total = $total_rows['order_total'];
+              //unset( $total_rows['order_total'] );
 
+              // Insert a new row
+              $total_rows['total'] = array(
+                  'label' => __( 'Total:', 'woocommerce' ),
+                  'value' => wc_price( $data['total']  ),
+              );
+              $arg['currency']='NTY';
+              $total_rows['total_in_coin'] = array(
+                  'label' => __( 'Total NTY:', 'woocommerce' ),
+                  'value' => wc_price($data['total_in_coin'],$arg ),
+                  //'value' => __( $data['total_in_coin']." NTY", 'woocommerce' ),
+              );
+
+
+
+              // Set back last total row
+              $total_rows['order_total'] = $gran_total;
+
+              return $total_rows;
+} );
             $this->test_function($data);
 
            }

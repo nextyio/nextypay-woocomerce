@@ -1,4 +1,5 @@
 <?php
+
 class Nextypaysetup {
   //public $db_prefix=$wpdb->prefix;
   public $nexty_prefix='nextypay_';
@@ -74,10 +75,13 @@ class Nextypaysetup {
     $wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "$table_name`;");
   }
 
+
   public function install() {
     $this->create_blocks_table_db();
     $this->create_transactions_table_db();
     $this->create_order_in_coin_table_db();
+    add_filter( 'woocommerce_currencies', 'add_my_currency' );
+    add_filter('woocommerce_currency_symbol', 'add_my_currency_symbol', 10, 2);
   }
 
   public function uninstall() {
