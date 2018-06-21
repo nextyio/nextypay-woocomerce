@@ -1,25 +1,32 @@
 <?php
 /**
  * Plugin Name: Nexty Payment
- * Plugin URI:
- * Description: A payment gateway for Nexty.
+ * Plugin URI: https://github.com/nextyio/nextypay-woocomerce
+ * Description: A payment gateway for Nexty (NTY).
  * Version: 2.0.0
  * Author: Thang Nguyen
- * Author URI: https://github.com/bestboyvn87/paynext
+ * Author URI: https://github.com/bestboyvn87
  * Copyright: © 2018 Fredo / Nexty.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
- * Text Domain: woocommerce-paynext
+ * Text Domain: woocommerce-nextypay
  * Domain Path: /languages
  * WC tested up to: 3.3
  * WC requires at least: 2.6
  */
 
-
-
- if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
+
+function plugin_add_settings_link( $links ) {
+    $settings_link = '<a href="admin.php?page=wc-settings&tab=checkout&section=nextypay">Settings</a>';
+    array_push( $links, $settings_link );
+   	return $links;
+}
+
+$plugin = plugin_basename( __FILE__ );
+add_action( "plugin_action_links_$plugin", 'plugin_add_settings_link' );
 
 $nextypay_url			= dirname(__FILE__)."/";
 $nextypay_js_url	= $nextypay_url.'assets/js/';
