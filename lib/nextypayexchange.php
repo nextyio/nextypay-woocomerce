@@ -4,7 +4,7 @@ class Nextypayexchange{
     private static $instance;
 
     public $_exchangeAPI_url;
-    public $_coin_id=1027;
+    public $_coin_id=2714;
     public $_store_currency_code;
     public $_key_text="/?convert=";
     //Ether 1027 Nexty 2714

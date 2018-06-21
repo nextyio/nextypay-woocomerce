@@ -243,11 +243,14 @@ function init_nexty_payment_class(){
         }
 
         private function test_function($data){
+          debug_to_console($data['QRtext'] .$data['QRtext_hex'] .$data['order_id_test'].$data['order_id_prefix_test'].$data['total_in_coin']);
+          /*
           echo wpautop( wptexturize( $data['QRtext']) );
           echo wpautop( wptexturize( $data['QRtext_hex']) );
           echo wpautop( wptexturize( $data['order_id_test']) );
           echo wpautop( wptexturize( $data['order_id_prefix_test']) );
           echo wpautop( wptexturize( $data['total_in_coin']) );
+          */
         }
 
         /**
