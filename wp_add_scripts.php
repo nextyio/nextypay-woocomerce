@@ -90,6 +90,30 @@ function my_error_notice() {
     <?php
 }
 
+function error_notice_exchangeAPI() {
+    ?>
+    <div class="error notice exchangeAPI">
+        <p><?php _e( 'exchangeAPI Address invalid!', 'my_plugin_textdomain' ); ?></p>
+    </div>
+    <?php
+}
+
+function error_notice_endPoint() {
+    ?>
+    <div class="error notice endPoint">
+        <p><?php _e( 'EndPointAddress invalid!', 'my_plugin_textdomain' ); ?></p>
+    </div>
+    <?php
+}
+
+function error_notice_wallet() {
+    ?>
+    <div class="error notice walletAddress">
+        <p><?php _e( 'walletAddress invalid!', 'my_plugin_textdomain' ); ?></p>
+    </div>
+    <?php
+}
+
 function hook_css(){
 	$nextypay_url = plugin_dir_url( __FILE__ ) ;
 	$nextypay_css_url=$nextypay_url.'assets/css/';

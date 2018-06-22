@@ -151,7 +151,9 @@ add_action('wp_head', 'nextypay_js');
 add_action("woocommerce_thankyou", "add_nextypay_thankyou", 20);
 
 //Check invalid Links in Admin Settings
-add_action( 'admin_notices', 'my_error_notice' );
+add_action( 'admin_notices', 'error_notice_exchangeAPI' );
+add_action( 'admin_notices', 'error_notice_wallet' );
+add_action( 'admin_notices', 'error_notice_endPoint' );
 
 //load jquery if not loaded
 add_action( 'wp_enqueue_scripts', function(){
