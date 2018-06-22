@@ -19,16 +19,22 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
-add_filter( 'woocommerce_get_order_totals', 'bbloomer_add_recurring_row_email', 10, 2 );
+add_action('woocommerce_review_order_after_order_total', 'add_total_NTY');
 
-function bbloomer_add_recurring_row_email( $total_rows, $myorder_obj ) {
+function add_total_NTY(){
+  $_exchange= new Nextypayexchange;
+  $store_currency_code= get_woocommerce_currency();
+  $cart_total= WC()->cart->total;
+  $_exchange->set_store_currency_code($store_currency_code);
+  $cart_total_NTY= $_exchange->coinmarketcap_exchange($cart_total);
+  $cart_total_NTY=number_format((float)$cart_total_NTY, 2, '.', '');
+  ?>
+    <tr class="order-total">
+      <th><?php _e( 'Total NTY', 'woocommerce' ); ?></th>
+      <td><strong>NTY <?php echo $cart_total_NTY ; ?></strong></td>
+    </tr>
+<?php
 
-$total_rows['recurr_not'] = array(
-    'label' => __( 'Rec:', 'woocommerce' ),
-    'value' => 'blabla'
-);
-
-return $total_rows;
 }
 
 //add_filter( 'woocommerce_get_order_item_totals', 'add_custom_order_totals_row', 30, 3 );
@@ -218,6 +224,14 @@ function init_nexty_payment_class(){
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             add_action( 'woocommerce_thankyou_order_received_text', array( $this, 'woo_change_order_received_text' ),10,2 );
             add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
+    /*        add_action( 'woocommerce_review_order_after_order_total', function() use ($data,$order) {
+                ?>
+                  <tr class="order-total">
+                    <th><?php _e( 'Total', 'woocommerce' ); ?></th>
+                    <td>10</td>
+                  </tr>
+              <?php
+            } );*/
         }
 
         /**
