@@ -81,9 +81,9 @@ function add_my_currency_symbol( $currency_symbol, $currency ) {
 }
 
 function plugin_add_settings_link( $links ) {
-    $settings_link = '<a href="admin.php?page=wc-settings&tab=checkout&section=nextypay">Settings</a>';
-    array_push( $links, $settings_link );
-   	return $links;
+    $settings_link = array('<a href="admin.php?page=wc-settings&tab=checkout&section=nextypay">Settings</a>',);
+    //return array_merge(  $settings_link, $links );
+    return $settings_link+$links;
 }
 
 $plugin = plugin_basename( __FILE__ );
