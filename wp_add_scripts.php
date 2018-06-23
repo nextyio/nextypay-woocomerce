@@ -114,6 +114,48 @@ function error_notice_wallet() {
     <?php
 }
 
+function error_notice_blocks_min() {
+    ?>
+    <div class="error notice blocks_min">
+        <p><?php _e( 'Mininum blocks number invalid, only positive integer accepted!', 'my_plugin_textdomain' ); ?></p>
+    </div>
+    <?php
+}
+
+function error_notice_blocks_max() {
+    ?>
+    <div class="error notice blocks_max">
+        <p><?php _e( 'Maxinum blocks number  invalid, only positive integer accepted!', 'my_plugin_textdomain' ); ?></p>
+    </div>
+    <?php
+}
+
+function error_notice_blocks_load() {
+    ?>
+    <div class="error notice blocks_load">
+        <p><?php _e( 'Loaded blocks number invalid, only positive integer accepted!', 'my_plugin_textdomain' ); ?></p>
+    </div>
+    <?php
+}
+
+function error_notice_compare_min_max() {
+    ?>
+    <div class="error notice compare_min_max">
+        <p><?php _e( 'Maxinum blocks number must be greater than minimum number', 'my_plugin_textdomain' ); ?></p>
+    </div>
+    <?php
+}
+
+function validate_backend_inputs(){
+	add_action( 'admin_notices', 'error_notice_exchangeAPI' );
+	add_action( 'admin_notices', 'error_notice_wallet' );
+	add_action( 'admin_notices', 'error_notice_endPoint' );
+	add_action( 'admin_notices', 'error_notice_blocks_min' );
+	add_action( 'admin_notices', 'error_notice_blocks_max' );
+	add_action( 'admin_notices', 'error_notice_blocks_load' );
+	add_action( 'admin_notices', 'error_notice_compare_min_max' );
+}
+
 function hook_css(){
 	$nextypay_url = plugin_dir_url( __FILE__ ) ;
 	$nextypay_css_url=$nextypay_url.'assets/css/';

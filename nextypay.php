@@ -157,9 +157,7 @@ add_action('wp_head', 'nextypay_js');
 add_action("woocommerce_thankyou", "add_nextypay_thankyou", 20);
 
 //Check invalid Links in Admin Settings
-add_action( 'admin_notices', 'error_notice_exchangeAPI' );
-add_action( 'admin_notices', 'error_notice_wallet' );
-add_action( 'admin_notices', 'error_notice_endPoint' );
+validate_backend_inputs();
 
 //load jquery if not loaded
 add_action( 'wp_enqueue_scripts', function(){
@@ -470,7 +468,7 @@ function init_nexty_payment_class(){
             $status = 'wc-' === substr( $this->order_status, 0, 3 ) ? substr( $this->order_status, 3 ) : $this->order_status;
 
             // Set order status
-            $order->update_status( "on-hold", __( 'Awaiting Nexty payment ', $this->domain ) );
+            $order->update_status( $this->order_status, __( 'Awaiting Nexty payment ', $this->domain ) );
 
             // Reduce stock levels
             $order->reduce_order_stock();
