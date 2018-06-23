@@ -365,6 +365,7 @@ function init_nexty_payment_class(){
         public function woo_change_order_received_text( $str, $order ){
           global $wpdb;
           $order_status = wc_get_order( $order)->status;
+          echo wpautop( wptexturize("<h3>$this->instruction</h3>"));
           if ($order_status=='completed') {
             echo wpautop( wptexturize( 'Payment successed. Thank you and have fun with your Shopping!') );
           } else
@@ -401,8 +402,8 @@ function init_nexty_payment_class(){
             $data['QRtext']='{"walletaddress": "'.$this->walletAddress.'","uoid": "'.$data['order_id_with_prefix'].'","amount": "'.$data['total_in_coin'].'"}  ';
             $data['QRtext_hex']="0x".$_functions->strToHex($data['QRtext']);
             $data['QRtextencode']= urlencode ( $data['QRtext'] );
-
-            echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>".' Waiting for your Payment... Page will be redirected after the payment.' ) );
+            echo wpautop( wptexturize('Waiting for your Payment... Page will be redirected after the payment.'));
+            echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>" ) );
             echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='
             .$data['QRtextencode'].'&choe=UTF-8" title="Link to Google.com" />' ) );
             add_action( 'woocommerce_get_order_item_totals', function() use ($data,$order) {
