@@ -221,7 +221,7 @@ function init_nexty_payment_class(){
             // Actions
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             add_action( 'woocommerce_thankyou_order_received_text', array( $this, 'woo_change_order_received_text' ),10,2 );
-            add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
+            add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instruction' ), 10, 3 );
     /*        add_action( 'woocommerce_review_order_after_order_total', function() use ($data,$order) {
                 ?>
                   <tr class="order-total">
@@ -268,11 +268,11 @@ function init_nexty_payment_class(){
                     'default'     => __('nexty payment default description', $this->domain),
                     'desc_tip'    => true,
                 ),
-                'instructions' => array(
-                    'title'       => __( 'Instructions', $this->domain ),
+                'instruction' => array(
+                    'title'       => __( 'Instruction', $this->domain ),
                     'type'        => 'textarea',
-                    'description' => __( 'Instructions that will be added to the thank you page and emails.', $this->domain ),
-                    'default'     => 'nexty payment default instructions',
+                    'description' => __( 'Instruction that will be added to the thank you page and emails.', $this->domain ),
+                    'default'     => 'nexty payment default instruction',
                     'desc_tip'    => true,
                 ),
 				        'walletAddress' => array(
@@ -442,9 +442,11 @@ function init_nexty_payment_class(){
          * @param bool $sent_to_admin
          * @param bool $plain_text
          */
-        public function email_instructions( $order, $sent_to_admin, $plain_text = false ) {
-            if ( $this->instructions && ! $sent_to_admin && 'custom' === $order->payment_method && $order->has_status( 'on-hold' ) ) {
-                echo wpautop( wptexturize( $this->instructions ) ) . PHP_EOL;
+        public function email_instruction( $order, $sent_to_admin, $plain_text = false ) {
+            //if ( $this->instruction && ! $sent_to_admin && 'custom' === $order->payment_method && $order->has_status( 'on-hold' ) ) {
+            //echo wpautop( wptexturize( $this->instruction ) ) . PHP_EOL;
+            if ( $this->instruction && 'nextypay' === $order->payment_method  ) {
+                echo wpautop( wptexturize( $this->instruction ) ) . PHP_EOL;
             }
         }
 
