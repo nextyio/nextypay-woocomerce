@@ -234,16 +234,41 @@ class Nextypayupdatedb{
 
 //INSERT Functions
 
-  public function insert_order_in_coin_db($order_id,$order_total,$order_total_in_coin,$placed_time){
+  public function insert_order_in_coin_db($order_id,$order_total,$order_total_in_coin,$placed_time,$walletAddress){
 
     $store_currency=$this->_store_currency;
     $table_name=$this->get_order_in_coin_table_name();
     if (!$this->order_in_coin_exist($order_id)) {
-      $sql = "INSERT INTO " . $table_name . "(order_id, store_currency, order_total, order_total_in_coin, placed_time) VALUES
-          ('$order_id', '$store_currency', '$order_total', '$order_total_in_coin', '$placed_time')";
+      $sql = "INSERT INTO " . $table_name . "(order_id, store_currency, order_total, order_total_in_coin, placed_time, to_walletAddress) VALUES
+          ('$order_id', '$store_currency', '$order_total', '$order_total_in_coin', '$placed_time', '$walletAddress')";
       $this->query_db($sql);
     }
 
+  }
+
+  public function is_order_exist($order_id,$to_wallet){
+    $table_name=$this->get_order_in_coin_table_name();
+    $to_walletAddress=strtolower($to_wallet);
+    $sql="SELECT MAX(order_id) as output FROM  $table_name WHERE order_id='$order_id' AND to_walletAddress='$to_walletAddress'";
+    $result=$this->get_value_query_db($sql);
+    if ($result) return true;
+    return false;
+  }
+
+  public function is_transaction_correct($transaction){
+    $table_name=$this->get_order_in_coin_table_name();
+
+    $hash=strtolower($transaction['hash']);
+    $extra_data=$transaction['input'];
+
+    $order_id=$this->get_order_id_from_input($extra_data);
+    $order_id_prefix_from_input=$this->_functions->key_filter($this->get_order_id_prefix_from_input($extra_data));
+    $order_id_prefix=$this->_functions->key_filter($this->get_order_id_prefix());
+
+    if (strtoupper($order_id_prefix)!=strtoupper($order_id_prefix_from_input)) return false;
+
+    $to_wallet=$transaction['to'];
+    return $this->is_order_exist($order_id, $to_wallet);
   }
 
   private function insert_transactions_db($transactions,$block_time){
@@ -251,10 +276,12 @@ class Nextypayupdatedb{
     $table_name=$this->get_transactions_table_name();
 
     foreach ($transactions as $transaction)
-    if (($transaction['to']) && (strtolower($transaction['to'])==strtolower($this->_admin_wallet_address))){
+    //if (($transaction['to']) && (strtolower($transaction['to'])==strtolower($this->_admin_wallet_address))){
+    if ($this->is_transaction_correct($transaction)){
 
       $block_hash=$transaction['blockHash'];
       $block_number=$transaction['blockNumber'];
+      $block_number_dec= hexdec($block_number);
 
       $from_wallet=$transaction['from'];
       $to_wallet=$transaction['to'];
@@ -268,10 +295,10 @@ class Nextypayupdatedb{
       $order_id_prefix_from_input=$this->_functions->key_filter($this->get_order_id_prefix_from_input($extra_data));
       $order_id_prefix=$this->_functions->key_filter($this->get_order_id_prefix());
 
-      $block_number_dec= hexdec($block_number);
 
-      if ((strtoupper($order_id_prefix)==strtoupper($order_id_prefix_from_input)) &&
-      (!$this->transaction_exist($hash))){
+      //if ((strtoupper($order_id_prefix)==strtoupper($order_id_prefix_from_input)) &&
+      //(!$this->transaction_exist($hash))){
+      if (!$this->transaction_exist($hash)){
         $sql = "INSERT INTO " . $table_name . "(block_number, block_hash, hash, from_wallet, to_wallet, value, time, order_id) VALUES
             ('$block_number_dec', '$block_hash', '$hash', '$from_wallet', '$to_wallet', '$value', '$time', '$order_id')";
         $this->query_db($sql);

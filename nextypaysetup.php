@@ -17,6 +17,7 @@ class Nextypaysetup {
         store_currency text NOT NULL,
         order_total text NOT NULL,
         order_total_in_coin text NOT NULL,
+        to_walletAddress text NOT NULL,
         placed_time DATETIME NOT NULL,
         UNIQUE KEY id (id)
       ) ENGINE=MyISAM DEFAULT COLLATE=utf8_general_ci;";

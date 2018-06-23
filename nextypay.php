@@ -396,12 +396,13 @@ function init_nexty_payment_class(){
             if (!$data['total_in_coin'])  {
               $data['total_in_coin']=$_exchange->coinmarketcap_exchange($data['total']);
               $placed_time=date("Y-m-d H:i:s");
-              $_updatedb->insert_order_in_coin_db($data['order_id'],$data['total'],$data['total_in_coin'],$placed_time);
+              $_updatedb->insert_order_in_coin_db($data['order_id'],$data['total'],$data['total_in_coin'],$placed_time,strtolower($this->walletAddress));
             }
 
             $data['QRtext']='{"walletaddress": "'.$this->walletAddress.'","uoid": "'.$data['order_id_with_prefix'].'","amount": "'.$data['total_in_coin'].'"}  ';
             $data['QRtext_hex']="0x".$_functions->strToHex($data['QRtext']);
             $data['QRtextencode']= urlencode ( $data['QRtext'] );
+            //echo wpautop( wptexturize($_updatedb->is_order_exist('62','0x841a13dde9581067115f7d9d838e5ba44b537a42')?'1':'0'));
             echo wpautop( wptexturize('Waiting for your Payment... Page will be redirected after the payment.'));
             echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>" ) );
             echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='
