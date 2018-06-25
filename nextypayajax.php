@@ -14,6 +14,7 @@ $nextypay_css_url	= $nextypay_url.'assets/css/';
 $nextypay_lib_url = $nextypay_url.'lib/' ;
 
 include_once $nextypay_url.'nextypay.php';
+include_once $nextypay_url.'wp_add_scripts.php';
 
 include_once $nextypay_lib_url.'nextypayblockchain.php';
 include_once $nextypay_lib_url.'nextypayfunctions.php';
@@ -35,8 +36,19 @@ $_updatedb->set_backend_settings($_db_prefix,$_nextypay_obj->store_currency_code
        $_SERVER['HTTP_HOST'],$_nextypay_obj->min_blocks_saved_db,$_nextypay_obj->max_blocks_saved_db,20);
 
 $_updatedb->updatedb();
+sleep(5);
+$_updatedb->updatedb();
+sleep(5);
+$_updatedb->updatedb();
+sleep(5);
+$_updatedb->updatedb();
+sleep(5);
+$_updatedb->updatedb();
+sleep(5);
+$_updatedb->updatedb();
 
 echo "Loading Blocks";
+
 
  // Always die in functions echoing ajax content
 wp_die();
