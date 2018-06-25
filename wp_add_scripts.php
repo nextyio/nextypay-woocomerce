@@ -39,7 +39,7 @@ function get_order_status_ajax() {
 			$order_id=$_REQUEST['order_id'];//echo $order_id;
 			echo $_updatedb->is_paid_sum_enough($order_id);
 			if ($_updatedb->is_paid_sum_enough($order_id)) {
-					 echo "1";echo $order_id;
+					 echo "1";
 					// $_updatedb->order_status_to_complete($order_id);
 					exit;
 			}

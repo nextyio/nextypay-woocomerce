@@ -39,7 +39,7 @@ function call_ajax(startTime,order_id,timeout,interval){
         success:function(response) {
             // This outputs the result of the ajax request
             console.log("Loading Blocks");
-            console.log(response);
+            //console.log(response);
             //alert (response);
             paid=response;
             if (paid[0]=="1") {
