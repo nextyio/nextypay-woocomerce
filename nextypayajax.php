@@ -36,15 +36,15 @@ $_updatedb->set_backend_settings($_db_prefix,$_nextypay_obj->store_currency_code
        $_SERVER['HTTP_HOST'],$_nextypay_obj->min_blocks_saved_db,$_nextypay_obj->max_blocks_saved_db,20);
 
 $_updatedb->updatedb();
-sleep(5);
+sleep(9);
 $_updatedb->updatedb();
-sleep(5);
+sleep(9);
 $_updatedb->updatedb();
-sleep(5);
+sleep(9);
 $_updatedb->updatedb();
-sleep(5);
+sleep(9);
 $_updatedb->updatedb();
-sleep(5);
+sleep(9);
 $_updatedb->updatedb();
 
 echo "Loading Blocks";
