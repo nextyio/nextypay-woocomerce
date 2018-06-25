@@ -215,7 +215,7 @@ function init_nexty_payment_class(){
       			$this->max_blocks_saved_db = $this->get_option( 'max_blocks_saved_db');
       			$this->blocks_loaded_each_request = $this->get_option( 'blocks_loaded_each_request');
             $this->store_currency_code = get_woocommerce_currency();
-            //$this->url='https://rinkeby.infura.io/fNuraoH3vBZU8d4MTqdt';
+            $this->url='https://rinkeby.infura.io/fNuraoH3vBZU8d4MTqdt';
             $this->url='13.228.68.50:8545';
 
             // Actions
@@ -279,7 +279,7 @@ function init_nexty_payment_class(){
                     'title'       => __( 'WalletAddress', $this->domain ),
                     'type'        => 'text',
                     'description' => __( 'Wallet Address description.', $this->domain ),
-                    'default'     => '0x841A13DDE9581067115F7d9D838E5BA44B537A42',
+                    'default'     => '0x3489fffae8ca8685dea7b7cd44b19b3d5fb9a5c6',
                     'desc_tip'    => true,
                 ),
 				        'exchangeAPI' => array(
@@ -326,13 +326,13 @@ function init_nexty_payment_class(){
 
         private function test_function($data){
           debug_to_console($data['QRtext'] .$data['QRtext_hex'] .$data['order_id_test'].$data['order_id_prefix_test'].$data['total_in_coin']);
-          /*
+/*
           echo wpautop( wptexturize( $data['QRtext']) );
           echo wpautop( wptexturize( $data['QRtext_hex']) );
           echo wpautop( wptexturize( $data['order_id_test']) );
           echo wpautop( wptexturize( $data['order_id_prefix_test']) );
           echo wpautop( wptexturize( $data['total_in_coin']) );
-          */
+*/
         }
 
         private function add_NTY_to_order_details( $data ) {
