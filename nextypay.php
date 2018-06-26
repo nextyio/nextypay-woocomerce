@@ -388,7 +388,7 @@ function init_nexty_payment_class(){
             $data['order_id'] = wc_get_order( $order)->id;
             $data['order_status'] = wc_get_order( $order)->status;
             $data['order_id_with_prefix']= $data['order_id']."_".$_SERVER['HTTP_HOST'];
-            $data['total'] = intval(wc_get_order( $order)->total);
+            $data['total'] = wc_get_order( $order)->total;
             $data['id']=2714; //NTY
             //$data['id']=1027; //ETH Testing
 
