@@ -139,8 +139,8 @@ include_once $nextypay_url.'/wp_add_scripts.php';
 
 
 //no need login
-//add_action( 'wp_ajax_nopriv_get_order_status_ajax', 'get_order_status_ajax' );
-//add_action( 'wp_ajax_nopriv_updatedb_ajax', 'updatedb_ajax' );
+add_action( 'wp_ajax_nopriv_get_order_status_ajax', 'get_order_status_ajax' );
+add_action( 'wp_ajax_nopriv_updatedb_ajax', 'updatedb_ajax' );
 
 ////////////wp_ajax_[nopriv_]...... function name
 
