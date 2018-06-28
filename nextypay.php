@@ -40,7 +40,7 @@ register_activation_hook( __FILE__, 'nextypay_install' );
 register_deactivation_hook( __FILE__, 'nextypay_uninstall' );
 
 //add nextypay setting link in plugins list
-add_action( 'plugin_action_links_$plugin', 'np_plugin_add_settings_link' );
+add_action( 'plugin_action_links_'.$plugin, 'np_plugin_add_settings_link' );
 
 /**
  * NTY currency and currency symbol
@@ -292,6 +292,7 @@ function np_init_nextypay_class(){
         $exchange->set_exchangeAPI_url($this->exchangeAPI);
         $exchange->set_store_currency_code($this->store_currency_code);
 
+        $updatedb->set_url($this->url);
         $updatedb->set_connection($wpdb);
         $updatedb->set_includes($blockchain,$functions);
         $updatedb->set_backend_settings($np_db_prefix,$this->store_currency_code,$this->walletAddress,
@@ -316,11 +317,7 @@ function np_init_nextypay_class(){
         $data['QRtext']='{"walletaddress": "'.$this->walletAddress.'","uoid": "'.$data['order_id_with_prefix'].'","amount": "'.$data['total_in_coin'].'"}  ';
         $data['QRtext_hex']="0x".$functions->strToHex($data['QRtext']);
         $data['QRtextencode']= urlencode ( $data['QRtext'] );
-        $response=$blockchain->get_block_by_number($this->url,'0x'.dechex(3879516));
-        $response=json_encode($response);
-        //$response=$this->url;
-        echo wpautop( wptexturize($this->url));
-        echo wpautop( wptexturize($response));
+
         echo wpautop( wptexturize('Waiting for your Payment... Page will be redirected after the payment.'));
         echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>" ) );
         echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='

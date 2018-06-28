@@ -82,7 +82,7 @@ function np_add_thankyou($order_id) {
 		if (($order instanceof WC_Order) && ($order_status!='completed')) {
         ?>
         <script type="text/javascript">
-            //  call_ajax(new Date(), <?php echo $order_id; ?>,600,3 );
+              call_ajax(new Date(), <?php echo $order_id; ?>,600,3 );
         </script>
         <?php
     }

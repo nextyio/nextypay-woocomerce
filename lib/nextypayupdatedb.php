@@ -410,7 +410,6 @@ class Nextypayupdatedb{
   }
 
   public function updatedb(){
-
     $this->init_blocks_table_db();
 
     $to_scan_number=$this->_blocks_loaded_each_request;

@@ -15,7 +15,7 @@ class Nextypayblockchain
 
     return static::$instance;
   }
-/*
+
   public function get_max_block_number($url){
     $fields = array(
     'jsonrpc' => "2.0",
@@ -39,6 +39,7 @@ class Nextypayblockchain
     return hexdec($response_body->result);
 
   }
+
 
   public function get_block_by_hash($url,$block_hash){
 		$fields = array(
@@ -82,14 +83,13 @@ class Nextypayblockchain
         );
 
     $response = wp_remote_post(esc_url_raw( $url ), $args);
-    $response_body=json_decode(wp_remote_retrieve_body( $response ));
+    $response_body=json_decode(wp_remote_retrieve_body( $response ),true);
 
     return $response_body;
   }
-  */
 
 
-
+/*
 	public function get_max_block_number($url){
 		$fields = array(
 		'jsonrpc' => "2.0",
@@ -137,6 +137,7 @@ class Nextypayblockchain
 		return $json_result;
 	}
 
+
 	public function get_block_by_number($url,$block_number){
 		$fields = array(
 			'jsonrpc' => "2.0",
@@ -160,6 +161,6 @@ class Nextypayblockchain
 		$json_result = json_decode($result,true);
 		return $json_result;
 	}
-  
+*/
 }
 ?>
