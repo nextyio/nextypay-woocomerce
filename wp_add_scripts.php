@@ -1,6 +1,13 @@
 <?php
+function np_debug_to_console( $data ) {
+    $output = $data;
+    if ( is_array( $output ) )
+        $output = implode( ',', $output);
 
-function updatedb_ajax() {
+    echo "<script>console.log( 'Debug Objects: " . $output . "' );</script>";
+}
+
+function np_updatedb_ajax() {
 	global $wpdb;
 	$_nextypay_obj= new WC_Nextypay;
 
@@ -21,7 +28,7 @@ function updatedb_ajax() {
 	wp_die();
 }
 
-function get_order_status_ajax() {
+function np_get_order_status_ajax() {
 	global $wpdb;
 	// The $_REQUEST contains all the data sent via ajax
 	if ( isset($_REQUEST) ) {
@@ -49,13 +56,13 @@ function get_order_status_ajax() {
 	wp_die();
 }
 
-function nextypay_js() {
+function np_add_nextypay_js() {
 	$nextypay_url = plugin_dir_url( __FILE__ ) ;
 	$nextypay_js_url=$nextypay_url.'assets/js/';
 	echo '<script type="text/javascript" src="'.$nextypay_js_url."nextypay.js".'"></script>';
 }
 
-function add_ajax_js() {
+function np_add_ajax_js() {
 	// Enqueue javascript on the frontend.
 	wp_enqueue_script(
 		'ajax-js',plugin_dir_url( __FILE__ ) . 'assets/js/ajax.js',array('jquery')
@@ -66,7 +73,7 @@ function add_ajax_js() {
 	);
 }
 
-function add_nextypay_thankyou($order_id) {
+function np_add_thankyou($order_id) {
   if ($order_id > 0) {
 		$order = wc_get_order($order_id);
 		$order_status = $order->get_status();// order status
@@ -75,14 +82,14 @@ function add_nextypay_thankyou($order_id) {
 		if (($order instanceof WC_Order) && ($order_status!='completed')) {
         ?>
         <script type="text/javascript">
-              call_ajax(new Date(), <?php echo $order_id; ?>,600,3 );
+            //  call_ajax(new Date(), <?php echo $order_id; ?>,600,3 );
         </script>
         <?php
     }
   }
 }
 
-function my_error_notice() {
+function np_error_notice_link() {
     ?>
     <div class="error notice">
         <p><?php _e( 'Link Address invalid!', 'my_plugin_textdomain' ); ?></p>
@@ -90,7 +97,7 @@ function my_error_notice() {
     <?php
 }
 
-function error_notice_exchangeAPI() {
+function np_error_notice_exchangeAPI() {
     ?>
     <div class="error notice exchangeAPI">
         <p><?php _e( 'exchangeAPI Address invalid!', 'my_plugin_textdomain' ); ?></p>
@@ -98,7 +105,7 @@ function error_notice_exchangeAPI() {
     <?php
 }
 
-function error_notice_endPoint() {
+function np_error_notice_endPoint() {
     ?>
     <div class="error notice endPoint">
         <p><?php _e( 'EndPointAddress invalid!', 'my_plugin_textdomain' ); ?></p>
@@ -106,7 +113,7 @@ function error_notice_endPoint() {
     <?php
 }
 
-function error_notice_wallet() {
+function np_error_notice_wallet() {
     ?>
     <div class="error notice walletAddress">
         <p><?php _e( 'walletAddress invalid!', 'my_plugin_textdomain' ); ?></p>
@@ -114,7 +121,7 @@ function error_notice_wallet() {
     <?php
 }
 
-function error_notice_blocks_min() {
+function np_error_notice_blocks_min() {
     ?>
     <div class="error notice blocks_min">
         <p><?php _e( 'Mininum blocks number invalid, only positive integer accepted!', 'my_plugin_textdomain' ); ?></p>
@@ -122,7 +129,7 @@ function error_notice_blocks_min() {
     <?php
 }
 
-function error_notice_blocks_max() {
+function np_error_notice_blocks_max() {
     ?>
     <div class="error notice blocks_max">
         <p><?php _e( 'Maxinum blocks number  invalid, only positive integer accepted!', 'my_plugin_textdomain' ); ?></p>
@@ -130,7 +137,7 @@ function error_notice_blocks_max() {
     <?php
 }
 
-function error_notice_blocks_load() {
+function np_error_notice_blocks_load() {
     ?>
     <div class="error notice blocks_load">
         <p><?php _e( 'Loaded blocks number invalid, only positive integer accepted!', 'my_plugin_textdomain' ); ?></p>
@@ -138,7 +145,7 @@ function error_notice_blocks_load() {
     <?php
 }
 
-function error_notice_compare_min_max() {
+function np_error_notice_compare_min_max() {
     ?>
     <div class="error notice compare_min_max">
         <p><?php _e( 'Maxinum blocks number must be greater than minimum number', 'my_plugin_textdomain' ); ?></p>
@@ -146,43 +153,44 @@ function error_notice_compare_min_max() {
     <?php
 }
 
-function validate_backend_inputs(){
-	add_action( 'admin_notices', 'error_notice_exchangeAPI' );
-	add_action( 'admin_notices', 'error_notice_wallet' );
-	add_action( 'admin_notices', 'error_notice_endPoint' );
-	add_action( 'admin_notices', 'error_notice_blocks_min' );
-	add_action( 'admin_notices', 'error_notice_blocks_max' );
-	add_action( 'admin_notices', 'error_notice_blocks_load' );
-	add_action( 'admin_notices', 'error_notice_compare_min_max' );
+function np_validate_backend_inputs(){
+	add_action( 'admin_notices', 'np_error_notice_exchangeAPI' );
+	add_action( 'admin_notices', 'np_error_notice_wallet' );
+	add_action( 'admin_notices', 'np_error_notice_endPoint' );
+	add_action( 'admin_notices', 'np_error_notice_blocks_min' );
+	add_action( 'admin_notices', 'np_error_notice_blocks_max' );
+	add_action( 'admin_notices', 'np_error_notice_blocks_load' );
+	add_action( 'admin_notices', 'np_error_notice_compare_min_max' );
+	add_action( 'admin_notices', 'np_error_notice_link' );
 }
 
-function hook_css(){
+function np_hook_css(){
 	$nextypay_url = plugin_dir_url( __FILE__ ) ;
 	$nextypay_css_url=$nextypay_url.'assets/css/';
 	//wp_enqueue_style( 'style', $nextypay_css_url . 'nextypay_styles.css');
 }
 
 //js backend
-function hook_js(){
+function np_hook_js(){
 	$nextypay_url = plugin_dir_url( __FILE__ ) ;
 	$nextypay_js_url=$nextypay_url.'assets/js/';
 	wp_enqueue_script( 'script', $nextypay_js_url . 'nextypay.js', array('jquery'), null, true);
 }
 
 
-function nextypay_checkout_field_display_admin_order_meta($order){
+function np_checkout_field_display_admin_order_meta($order){
   $method = get_post_meta( $order->id, '_payment_method', true );
   if($method != 'nextypay') return;
 
 	return; //disable callback for pending payment
 }
 
-function nextypay_update_order_meta( $order_id ) {
+function np_update_order_meta( $order_id ) {
   if($_POST['payment_method'] != 'nextypay') return;
 	return; //disable callback for pending payment
 }
 
-function process_nextypay(){
+function np_process(){
 	return;
     if($_POST['payment_method'] != 'nextypay')
         return;
@@ -190,8 +198,58 @@ function process_nextypay(){
 	return; //disable callback for pending payment
 }
 
-function add_nextypay_class( $methods ) {
+function np_add_nextypay_class( $methods ) {
     $methods[] = 'WC_Nextypay';
     return $methods;
+}
+
+function np_add_total_NTY(){
+  $exchange= new Nextypayexchange;
+  $store_currency_code= get_woocommerce_currency();
+  $cart_total= WC()->cart->total;
+  $exchange->set_store_currency_code($store_currency_code);
+  $cart_total_NTY= $exchange->coinmarketcap_exchange($cart_total);
+  $cart_total_NTY=number_format((float)$cart_total_NTY, 2, '.', '');
+  ?>
+    <tr class="order-total">
+      <th><?php _e( 'Total NTY', 'woocommerce' ); ?></th>
+      <td><strong>NTY <?php echo $cart_total_NTY ; ?></strong></td>
+    </tr>
+<?php
+
+}
+
+function np_add_NTY_currency( $currencies ) {
+     $currencies['NTY'] = __( 'Nexty Coin', 'woocommerce' );
+     return $currencies;
+}
+
+function np_add_NTY_symbol( $currency_symbol, $currency ) {
+     switch( $currency ) {
+          case 'NTY': $currency_symbol = 'NTY'; break;
+     }
+     return $currency_symbol;
+}
+
+function np_plugin_add_settings_link( $links ) {
+    $settings_link = array('<a href="admin.php?page=wc-settings&tab=checkout&section=nextypay">Settings</a>',);
+    //return array_merge(  $settings_link, $links );
+    return $settings_link+$links;
+}
+
+function nextypay_install(){
+
+    // Require parent plugin
+    if ( ! is_plugin_active( 'woocommerce/woocommerce.php' ) and current_user_can( 'activate_plugins' ) ) {
+        // Stop activation redirect and show error
+        wp_die('Sorry, but this plugin requires the Woocommerce Plugin to be installed and active. <br><a href="' . admin_url( 'plugins.php' ) . '">&laquo; Return to Plugins</a>');
+    }
+    $nexty_pay_setup= new Nextypaysetup;
+    $nexty_pay_setup->install();
+}
+
+function nextypay_uninstall(){
+    $nexty_pay_setup= new Nextypaysetup;
+    $nexty_pay_setup->uninstall();
 }
  ?>
