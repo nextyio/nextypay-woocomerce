@@ -1,0 +1,6 @@
+#command:
+#crontab -e
+#call ajax to load new blocks every 60s
+*/1 * * * * wget --no-check-certificate https://__PATH_TO_WP_PLUGINS_FOLDER/nextypay/nextypayajax.php
+
+#ctr+x to save and quit, cronjob runs after that
