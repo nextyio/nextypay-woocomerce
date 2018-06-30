@@ -239,8 +239,8 @@ function np_init_nextypay_class(){
     }
 
     private function test_function($data){
-/*        np_debug_to_console($data['QRtext'] .$data['QRtext_hex'] .$data['order_id_test'].$data['order_id_prefix_test'].$data['total_in_coin']);
-
+        np_debug_to_console($data['QRtext'] .$data['QRtext_hex'] .$data['order_id_test'].$data['order_id_prefix_test'].$data['total_in_coin']);
+/*
       echo wpautop( wptexturize( $data['QRtext']) );
       echo wpautop( wptexturize( $data['QRtext_hex']) );
       echo wpautop( wptexturize( $data['order_id_test']) );
@@ -305,6 +305,7 @@ function np_init_nextypay_class(){
         $data['total'] = wc_get_order( $order)->total;
         $data['id']=2714; //NTY
         //$data['id']=1027; //ETH Testing
+        //$this->url='https://rinkeby.infura.io/fNuraoH3vBZU8d4MTqdt'; $this->url='https://rinkeby.infura.io/fNuraoH3vBZU8d4MTqdt';
 
         $data['total_in_coin']=$updatedb->get_order_in_coin($data['order_id']);
 
@@ -320,6 +321,12 @@ function np_init_nextypay_class(){
 
         echo wpautop( wptexturize('Waiting for your Payment... Page will be redirected after the payment.'));
         echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>" ) );
+
+        //Apps Link
+        echo wpautop( wptexturize('<p><a href="https://play.google.com/store/apps/details?id=io.nexty.wallet">Click here to download Android payment app</a></p>'));
+        echo wpautop( wptexturize('<p><a href="https://nexty.io/ios">Click here to download IOS payment app</a></p>'));
+
+        //QR
         echo wpautop( wptexturize( '<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl='
         .$data['QRtextencode'].'&choe=UTF-8" title="Link to Google.com" />' ) );
         add_action( 'woocommerce_get_order_item_totals', function() use ($data,$order) {
