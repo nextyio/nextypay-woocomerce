@@ -357,7 +357,7 @@ class Nextypayupdatedb{
 
     //check if payment success
     $paid_enough= ($paid_sum+$epsilon>$order_total_in_coin);
-    if ($paid_enough) $this->order_status_to_complete($order_id);
+    if (($order_total_in_coin==0) || ($paid_enough)) $this->order_status_to_complete($order_id);
     return $paid_enough;
 
   }
