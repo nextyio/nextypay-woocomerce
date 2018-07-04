@@ -1,149 +1,85 @@
 === Nextypay ===
 Contributors: thangnguyen87
-Donate link: https://github.com/bestboyvn87
+Donate link: nexty.io
 Tags: blockchain, payment, ecommerce, e-commerce, store, sales, sell, shop, cart, checkout, downloadable, downloads, storefront, woo commerce
 Requires at least: 2.6
 Tested up to: 4.9.5
 Stable tag: 4.9.5
-Requires PHP: 5.x.x
+Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-WooCommerce-Nextypay is one of our targets in Nexty e-commerce system to widen the payment with Nexty Coin (NTY), one of the best crypto currencies on the world at the moment.
+Nextypay is one of our targets in Nexty e-commerce system to widen the payment with Nexty Coin (NTY), one of the best crypto currencies on the world at the moment.
 
 == Description ==
 
-The Stripe Payments plugin allows you to accept credit card payments via Stripe payment gateway on your WordPress site easily.
+The Nextypay plugin allows you to accept NTY payment via Nextypay gateway on your WordPress site easily.
 
-It has a simple shortcode that lets you put Stripe "Buy Now" buttons anywhere on your site for a product or service. You can accept donation via Stripe also.
+One click payment via Nextypay with a remember me feature. Responsive design so it is compatible with all devices and browsers.
 
-One click payment via Stripe with a remember me feature. Responsive design so it is compatible with all devices and browsers.
-
-Your customers will be redirected to the "Checkout Result" page after the credit card payment. This page shows them the details of the transaction (the item that they just paid for).
-
-The transaction info is also captured in the orders menu of the plugin. You can view all the payments you received from your WordPress admin dashboard.
+Your customers will be redirected to the "Thank You" page after the payment. This page shows them a QR code and links to download mobile app 
+(the order that they just placed).These apps help your customers to transfer NTY over Blockchain, from customer wallet to your wallet, which is settingable in backend.
+its just a option to make the transfer easier with hexed code from the QR code. This plugin load full Blocks from the Blockchain and save any Transaction, which content your Wallet as to_wallet. For the Blocks
+loading, a short guide for linux cronjob added in the root folder of plugin (30 blocks loaded every minute, because Nexty blockchain create Blocks every 2 seconds).  
+How many blocks to save is settingable too in backend (to prevent a block revert). Once the order enough paid, the plugin changes order status to completed, and notifies to customer.
+For more details, you can see these Videos below.
 
 = Setup and Usage Video =
 
-https://www.youtube.com/watch?v=yQB6IKz73g4
+Coming soon
 
 = Checkout Demo Video =
 
-https://www.youtube.com/watch?v=upWqk069Khg
+https://www.facebook.com/nextycoin/videos/278881949353506/
 
 = Features =
 
 * Quick installation and setup.
-* Easily take payment for a service from your site via Stripe.
-* Sell files, digital goods or downloads using your Stripe merchant account.
-* Sell music, video, ebook, PDF or any other digital media files.
-* The ultimate plugin to create simple Stripe payment buttons.
-* Create buy buttons for your products or services on the fly and embed it anywhere on your site using a user-friendly shortcode.
-* Ability to add multiple "Buy Now" buttons to a post/page.
-* Allow users to automatically download the digital file after the purchase is complete.
-* View purchase orders from your WordPress admin dashboard.
-* Accept donation on your WordPress site for a cause.
-* Create a stripe payment button widget and add it to your sidebar.
-* Ability to collect billing and shipping address of the customer.
-* Ability to specify a logo or thumbnail image for the item that will get shown in the stripe payment window.
-* Ability to customize the Stripe buy now button text from the shortcode.
-* Ability to customize the Stripe buy now button appearance using custom CSS code.
-* Ability to specify a custom description for the item/product (this info is captured with the order).
-* Option to configure a notification email to be sent to the buyer and seller after the purchase.
-* There is an option to allow the customer to enter a custom price amount for your product or service (customer pays what they want).
-* Option to accept custom donation amount via Stripe payment gateway.
-* Option to collect tax for your products (if applicable).
-* Option to collect shipping for your tangible products.
-* Option to save the card data on Stripe.
-* Ability to have custom thank you page on a per product basis.
-* Ability to customize the message on the thank you page using tags.
-* Ability to customize the price display with currency symbol.
-* Option to send receipt email to your customers from Stripe for each transaction.
-* Option to collect a custom input from your customers for products (useful if you are selling products that need special instructions from the customers).
-* Stock control option. You can limit the number of quantity available for a product.
-* Option to enable Alipay payments. So your customers can pay using their Alipay accounts.
-* Option to enable Terms and Conditions that your customers have to accept before they can make a purchase.
+* Easily take payment for a service from your site via Nextypay.
+* Zero Transfer fee and instant payment
+* Fully decentralize
+* Secure whole informations, even the QR code only displays hexed code
+* Opensource
+* Become a partner of the growing up Nexty ecosystem
 
-The setup is very easy. Once you have installed the plugin, all you need to do is enter your Stripe API credentials in the plugin settings and your website will be ready to accept credit card payments.
-
-You can run it in test mode by specifying test API keys in the plugin settings.
-
-= Shortcode Parameters/Attributes =
-
-There are two ways you can use this plugin to create a "Buy Now" or "Pay" button to accept payment.
-
-Option 1) Create a product in the admin dashboard of this plugin then use a shortcode to put a buy button for that product.
-
-[Check this tutorial](https://s-plugins.com/creating-product-stripe-payments-plugin/) for step by step instructions.
-
-Option 2) You can specify the item details in a shortcode to dynamically create a Stripe payment button.
-
-[Check this tutorial](https://s-plugins.com/creating-payment-button-dynamically-adding-details-shortcode/) for step by step instructions.
-
-= Detailed Documentation =
-
-For detailed documentation and instructions please check the [WordPress Stripe Payments Plugin](https://www.tipsandtricks-hq.com/ecommerce/wordpress-stripe-plugin-accept-payments-using-stripe) documentation page.
+The setup is very easy. Once you have installed the plugin, all you need to do is setting the backend with full instructions.
 
 == Installation ==
 
 = Using The WordPress Dashboard =
 
-1. Navigate to "Plugins->Add New" from your dashboard
-2. Search for 'stripe payments'
+1. Navigate to "Plugins->Add New" from your dashboard (coming soon)
+2. Search for 'Nextypay'
 3. Click 'Install Now'
 4. Activate the plugin
 
 = Uploading via WordPress Dashboard =
-
+0. Download link : https://github.com/nextyio/nextypay-woocomerce
 1. Navigate to the "Add New" in the plugins dashboard
 2. Navigate to the "Upload" area
-3. Select `stripe-payments.zip` from your computer
+3. Select `Nextypay.zip` from your computer
 4. Click "Install Now"
 5. Activate the plugin in the Plugin dashboard
 
 = Using FTP =
 
-1. Download `stripe-payments.zip`
-2. Extract the `stripe-payments` directory on your computer
-3. Upload the `stripe-payments` directory to the `/wp-content/plugins/` directory
+0. Download link : https://github.com/nextyio/nextypay-woocomerce
+1. Download `Nextypay.zip`
+2. Extract the `Nextypay` directory on your computer
+3. Upload the `Nextypay` directory to the `/wp-content/plugins/` directory
 4. Activate it from the Plugins dashboard
 
 == Frequently Asked Questions ==
-
-= Can I have multiple payment buttons on a single page? =
-
-Yes, you can have any number of buttons on a single page.
-
-= Can I use it in a WordPress Widgets? =
-
-Yes, you can.
-
-= Can I specify quantity of the item? =
-
-Yes, you can configure it in the product configuration interface.
-
-= Can I change the button label? =
-
-Yes, you can specify the "button_text" attribute in the shortcode to customize it.
-
-= Will the customers receive an email after purchase? =
-
-Yes, you can configure the email settings options in the settings menu of the plugin.
-
-= Is it possible to get notified if payment failed for some reason?
-
-Yes. Go to Stripe Payments > Settings, Email Settings tab and check "Send Email On Payment Failure" option.
-
-= Can It be tested before going live? =
-
-Yes, please visit Stripe Payments > Settings screen for options.
-
+1. How to convert the price of NTY in each moment?
+Ans: The price will be updated from Coinmarketcap.com and converted to the equivalent amount, which will be shown in the "total amount"
+2. What is the benefit of paying by NTY compared to traditional payment method?
+Ans: The key features of NTY is instant transfer and Zero transfer fee. This means that we do not charge extra fees like Paypal. The matter seems to be nothing with a $10 goods, but if the fee accounts for 1% of a $1,000,000 item, it does matter.  
 
 == Screenshots ==
 
-1. Stripe Plugin Settings
-2. Stripe Plugin Payment Page
-3. Stripe Plugin Orders Menu
+1. Nexty Plugin Settings
+2. Nexty Plugin Payment Page
+3. Nexty Plugin Orders Menu
 
 == Upgrade Notice ==
 None.
