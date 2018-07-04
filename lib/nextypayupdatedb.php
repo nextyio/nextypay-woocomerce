@@ -344,6 +344,12 @@ class Nextypayupdatedb{
   public function is_paid_sum_enough($order_id){
 
     if ($this->is_order_completed($order_id)) return true;
+    $order = wc_get_order( $order_id );
+    $order_total = wc_get_order( $order)->total;
+    if ($order_total==0) { //coupon, voucher
+      $this->order_status_to_complete($order_id);
+      return $paid_enough;
+    }
 
     $paid_sum=$this->get_paid_sum_by_order_id($order_id);
     if (!is_numeric($paid_sum)) {$paid_sum=-1;$order_total_in_coin=0;}
@@ -357,7 +363,7 @@ class Nextypayupdatedb{
 
     //check if payment success
     $paid_enough= ($paid_sum+$epsilon>$order_total_in_coin);
-    if (($order_total_in_coin==0) || ($paid_enough)) $this->order_status_to_complete($order_id);
+    if  ($paid_enough) $this->order_status_to_complete($order_id);
     return $paid_enough;
 
   }
