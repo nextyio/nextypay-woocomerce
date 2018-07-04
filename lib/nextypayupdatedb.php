@@ -163,7 +163,7 @@ class Nextypayupdatedb{
           WHERE order_id='$order_id'";
     $result=$this->get_value_query_db($sql);
     if ($result) return $result;
-    return 0;
+    return null;
 
   }
 
