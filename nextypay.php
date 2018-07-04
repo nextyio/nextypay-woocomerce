@@ -312,7 +312,7 @@ function np_init_nextypay_class(){
         if (!$data['total_in_coin'])  {
           $data['total_in_coin']=$exchange->coinmarketcap_exchange($data['total']);
           $placed_time=date("Y-m-d H:i:s");
-          if ($data['total_in_coin']>0)
+          //if ($data['total_in_coin']>0)
           $updatedb->insert_order_in_coin_db($data['order_id'],$data['total'],$data['total_in_coin'],$placed_time,strtolower($this->walletAddress));
         }
 

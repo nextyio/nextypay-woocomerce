@@ -54,8 +54,8 @@ class Nextypayexchange{
   $str=$this->_exchangeAPI_url.$this->_coin_id.$this->_key_text.$this->_store_currency_code;
   $result=json_decode((file_get_contents($str)),true);
   $upper_code=strtoupper($this->_store_currency_code);
-  if (!isset($result['data']['quotes'][$upper_code]['price'])) return 0;
-  if ($result['data']['quotes'][$upper_code]['price']<=0) return 0;
+  if (!isset($result['data']['quotes'][$upper_code]['price'])) return 1e40;
+  if ($result['data']['quotes'][$upper_code]['price']<=0) return 1e40;
   return $amount/$result['data']['quotes'][$upper_code]['price'];
 
   }
