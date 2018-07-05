@@ -17,10 +17,10 @@ The Nextypay plugin allows you to accept NTY payment via Nextypay gateway on you
 
 One click payment via Nextypay with a remember me feature. Responsive design so it is compatible with all devices and browsers.
 
-Your customers will be redirected to the "Thank You" page after the payment. This page shows them a QR code and links to download mobile app 
+Your customers will be redirected to the "Thank You" page after the payment. This page shows them a QR code and links to download mobile app
 (the order that they just placed).These apps help your customers to transfer NTY over Blockchain, from customer wallet to your wallet, which is settingable in backend.
 its just a option to make the transfer easier with hexed code from the QR code. This plugin load full Blocks from the Blockchain and save any Transaction, which content your Wallet as to_wallet. For the Blocks
-loading, a short guide for linux cronjob added in the root folder of plugin (30 blocks loaded every minute, because Nexty blockchain create Blocks every 2 seconds).  
+loading, a short guide for linux cronjob added in the root folder of plugin (30 blocks loaded every minute, because Nexty blockchain create Blocks every 2 seconds).
 How many blocks to save is settingable too in backend (to prevent a block revert). Once the order enough paid, the plugin changes order status to completed, and notifies to customer.
 For more details, you can see these Videos below.
 
@@ -31,6 +31,14 @@ Coming soon
 = Checkout Demo Video =
 
 https://www.facebook.com/nextycoin/videos/278881949353506/
+
+= Exchange API =
+At the moment, we are using only the exchange API service of Coinmarketcap to exchange the order total from store currency into NTY. In the future we will add several APIs to the list.
+Coinmarketcap API https://coinmarketcap.com/api/
+Public API Terms Of Use https://coinmarketcap.com/api/terms/
+Privacy And Cookie Policy https://coinmarketcap.com/privacy/
+
+Coming soon
 
 = Features =
 
@@ -73,7 +81,7 @@ The setup is very easy. Once you have installed the plugin, all you need to do i
 1. How to convert the price of NTY in each moment?
 Ans: The price will be updated from Coinmarketcap.com and converted to the equivalent amount, which will be shown in the "total amount"
 2. What is the benefit of paying by NTY compared to traditional payment method?
-Ans: The key features of NTY is instant transfer and Zero transfer fee. This means that we do not charge extra fees like Paypal. The matter seems to be nothing with a $10 goods, but if the fee accounts for 1% of a $1,000,000 item, it does matter.  
+Ans: The key features of NTY is instant transfer and Zero transfer fee. This means that we do not charge extra fees like Paypal. The matter seems to be nothing with a $10 goods, but if the fee accounts for 1% of a $1,000,000 item, it does matter.
 
 == Screenshots ==
 
