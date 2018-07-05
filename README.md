@@ -17,7 +17,7 @@ The Nextypay plugin allows you to accept NTY payment via Nextypay gateway on you
 
 One click payment via Nextypay with a remember me feature. Responsive design so it is compatible with all devices and browsers.
 
-Your customers will be redirected to the "Thank You" page after the payment. This page shows them a QR code and links to download mobile app 
+Your customers will be redirected to the "Thank You" page after the payment. This page shows them a QR code and links to download mobile app
 (the order that they just placed).These apps help your customers to transfer NTY over Blockchain, from customer wallet to your wallet, which is settingable in backend.
 its just a option to make the transfer easier with hexed code from the QR code. This plugin load full Blocks from the Blockchain and save any Transaction, which content your Wallet as to_wallet. For the Blocks
 loading, a short guide for linux cronjob added in the root folder of plugin (30 blocks loaded every minute, because Nexty blockchain create Blocks every 2 seconds).  
@@ -31,6 +31,14 @@ Coming soon
 = Checkout Demo Video =
 
 https://www.facebook.com/nextycoin/videos/278881949353506/
+
+= Exchange API =
+At the moment, we are using only the exchange API service of Coinmarketcap to exchange the order total from store currency into NTY. In the future we will add several APIs to the list.
+Coinmarketcap API https://coinmarketcap.com/api/
+Public API Terms Of Use https://coinmarketcap.com/api/terms/
+Privacy And Cookie Policy https://coinmarketcap.com/privacy/
+
+Coming soon
 
 = Features =
 
