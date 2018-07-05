@@ -12,7 +12,7 @@ function ntyp_debug_to_console( $data ) {
 }
 
 function ntyp_updatedb_ajax() {
-  wp_die();
+  //wp_die();
   //load block only with cron job.comment wp_die to load blocks with request of nexty payment
 
 	global $wpdb;

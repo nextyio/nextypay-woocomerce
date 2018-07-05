@@ -435,7 +435,7 @@ class Nextypayupdatedb{
 
       $hex_scanning_number="0x".strval(dechex($scanning_number)); //convert to hex
       $block=$this->_blockchain->get_block_by_number($this->_url,$hex_scanning_number);	//get Block by number with API
-      if (isset($block['result'])) $block_content=$block['result'];
+      if (isset($block['result'])) $block_content=$block['result']; else exit;
       $this->insert_block_db($block_content);
     }
 
