@@ -307,6 +307,7 @@ class Nextypayupdatedb{
         $sql = "INSERT INTO " . $table_name . "(block_number, block_hash, hash, from_wallet, to_wallet, value, time, order_id) VALUES
             ('$block_number_dec', '$block_hash', '$hash', '$from_wallet', '$to_wallet', '$value', '$time', '$order_id')";
         $this->query_db($sql);
+        $this->is_paid_sum_enough($order_id);
       }
     }
 
