@@ -49,7 +49,7 @@ function ntyp_updatedb_ajax_cronjob() {
 	$_updatedb->set_connection($wpdb);
 	$_updatedb->set_includes($_blockchain,$_functions);
 	$_updatedb->set_backend_settings($_db_prefix,$_nextypay_obj->store_currency_code,$_nextypay_obj->walletAddress,
-				 $_SERVER['HTTP_HOST'],$_nextypay_obj->min_blocks_saved_db,$_nextypay_obj->max_blocks_saved_db,30);
+				 $_SERVER['HTTP_HOST'],$_nextypay_obj->min_blocks_saved_db,$_nextypay_obj->max_blocks_saved_db,35);
 
 	$_updatedb->updatedb();
 
