@@ -19,6 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
+// ntyp_ as prefix for the whole Project.Nextypay prefix and NTY is the crypto coin name
+
 $plugin           = plugin_basename( __FILE__ );
 
 $nextypay_url			= dirname(__FILE__).'/';
@@ -55,6 +57,7 @@ add_filter( 'woocommerce_currency_symbol', 'ntyp_add_NTY_symbol', 10, 2 );
 //no need login for ajax, to load blocks from Blockchain
 add_action( 'wp_ajax_nopriv_ntyp_get_order_status_ajax', 'ntyp_get_order_status_ajax' );
 add_action( 'wp_ajax_nopriv_ntyp_updatedb_ajax', 'ntyp_updatedb_ajax' );
+add_action( 'wp_ajax_nopriv_ntyp_updatedb_ajax_cronjob', 'ntyp_updatedb_ajax_cronjob' );
 
 ////////////wp_ajax_[nopriv_]...... function name
 

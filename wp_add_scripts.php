@@ -12,6 +12,9 @@ function ntyp_debug_to_console( $data ) {
 }
 
 function ntyp_updatedb_ajax() {
+  wp_die();
+  //load block only with cron job.remove comment to load blocks with request of nexty payment
+  /*
 	global $wpdb;
 	$_nextypay_obj= new WC_Nextypay;
 
@@ -25,6 +28,28 @@ function ntyp_updatedb_ajax() {
 	$_updatedb->set_includes($_blockchain,$_functions);
 	$_updatedb->set_backend_settings($_db_prefix,$_nextypay_obj->store_currency_code,$_nextypay_obj->walletAddress,
 				 $_SERVER['HTTP_HOST'],$_nextypay_obj->min_blocks_saved_db,$_nextypay_obj->max_blocks_saved_db,$_nextypay_obj->blocks_loaded_each_request);
+
+	$_updatedb->updatedb();
+
+	 // Always die in functions echoing ajax content
+	wp_die();
+  */
+}
+
+function ntyp_updatedb_ajax_cronjob() {
+	global $wpdb;
+	$_nextypay_obj= new WC_Nextypay;
+
+	$_db_prefix=$wpdb->prefix.'nextypay_';
+	$_updatedb=new Nextypayupdatedb;
+	$_blockchain= new Nextypayblockchain;
+	$_functions= new Nextypayfunctions;
+
+	$_updatedb->set_url($_nextypay_obj->url);
+	$_updatedb->set_connection($wpdb);
+	$_updatedb->set_includes($_blockchain,$_functions);
+	$_updatedb->set_backend_settings($_db_prefix,$_nextypay_obj->store_currency_code,$_nextypay_obj->walletAddress,
+				 $_SERVER['HTTP_HOST'],$_nextypay_obj->min_blocks_saved_db,$_nextypay_obj->max_blocks_saved_db,30);
 
 	$_updatedb->updatedb();
 

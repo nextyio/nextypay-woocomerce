@@ -1,43 +1,24 @@
 <?php
+//This file do ajax request with php cron job
+//Load 30 blocks each request. Cron job interval 1 min.
+//Nexty blockchain creats 1 block every 2 seconds
 
-require_once(dirname( dirname(dirname( dirname(__FILE__) )))  . '/wp-config.php');
-$wp->init();
-$wp->parse_request();
-$wp->query_posts();
-$wp->register_globals();
-$wp->send_headers();
+function ntyp_get_ajax_request_url($url){
+    $to_cut='wp-content/plugins/nextypay/nextypayajax.php';
+    $base_url=explode($to_cut, $url);
+    return $base_url[0].'wp-admin/admin-ajax.php';
+}
 
-$nextypay_url			= dirname(__FILE__)."/";
-$nextypay_js_url	= $nextypay_url.'assets/js/';
-$nextypay_css_url	= $nextypay_url.'assets/css/';
-$nextypay_lib_url = $nextypay_url.'lib/' ;
+$actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 
-include_once $nextypay_url.'nextypay.php';
-include_once $nextypay_url.'wp_add_scripts.php';
-
-include_once $nextypay_lib_url.'nextypayblockchain.php';
-include_once $nextypay_lib_url.'nextypayfunctions.php';
-include_once $nextypay_lib_url.'nextypayexchange.php';
-include_once $nextypay_lib_url.'nextypayupdatedb.php';
-
-global $wpdb;
-$nextypay_obj= new WC_Nextypay;
-
-$ntyp_db_prefix=$wpdb->prefix.'nextypay_';
-$updatedb=new Nextypayupdatedb;
-$blockchain= new Nextypayblockchain;
-$functions= new Nextypayfunctions;
-
-$updatedb->set_url($nextypay_obj->url);
-$updatedb->set_connection($wpdb);
-$updatedb->set_includes($blockchain,$functions);
-$updatedb->set_backend_settings($ntyp_db_prefix,$nextypay_obj->store_currency_code,$nextypay_obj->walletAddress,
-       $_SERVER['HTTP_HOST'],$nextypay_obj->min_blocks_saved_db,$nextypay_obj->max_blocks_saved_db,30);
-
-$updatedb->updatedb();
-
-echo "Loading Blocks";
-
- // Always die in functions echoing ajax content
-wp_die();
+$url = ntyp_get_ajax_request_url($actual_link);
+$postfields = array('action'=>'ntyp_updatedb_ajax_cronjob');
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL,$url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $postfields);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // On dev server only!
+$result = curl_exec($ch);
 ?>
