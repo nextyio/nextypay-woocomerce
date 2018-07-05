@@ -23,7 +23,7 @@ include_once $nextypay_lib_url.'nextypayupdatedb.php';
 global $wpdb;
 $nextypay_obj= new WC_Nextypay;
 
-$np_db_prefix=$wpdb->prefix.'nextypay_';
+$ntyp_db_prefix=$wpdb->prefix.'nextypay_';
 $updatedb=new Nextypayupdatedb;
 $blockchain= new Nextypayblockchain;
 $functions= new Nextypayfunctions;
@@ -31,7 +31,7 @@ $functions= new Nextypayfunctions;
 $updatedb->set_url($nextypay_obj->url);
 $updatedb->set_connection($wpdb);
 $updatedb->set_includes($blockchain,$functions);
-$updatedb->set_backend_settings($np_db_prefix,$nextypay_obj->store_currency_code,$nextypay_obj->walletAddress,
+$updatedb->set_backend_settings($ntyp_db_prefix,$nextypay_obj->store_currency_code,$nextypay_obj->walletAddress,
        $_SERVER['HTTP_HOST'],$nextypay_obj->min_blocks_saved_db,$nextypay_obj->max_blocks_saved_db,30);
 
 $updatedb->updatedb();

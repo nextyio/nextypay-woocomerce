@@ -40,41 +40,41 @@ register_activation_hook( __FILE__, 'nextypay_install' );
 register_deactivation_hook( __FILE__, 'nextypay_uninstall' );
 
 //add nextypay setting link in plugins list
-add_action( 'plugin_action_links_'.$plugin, 'np_plugin_add_settings_link' );
+add_action( 'plugin_action_links_'.$plugin, 'ntyp_plugin_add_settings_link' );
 
 /**
  * NTY currency and currency symbol
  */
 
-add_action( 'woocommerce_review_order_after_order_total', 'np_add_total_NTY' );
+add_action( 'woocommerce_review_order_after_order_total', 'ntyp_add_total_NTY' );
 
-add_filter( 'woocommerce_currencies', 'np_add_NTY_currency' );
+add_filter( 'woocommerce_currencies', 'ntyp_add_NTY_currency' );
 
-add_filter( 'woocommerce_currency_symbol', 'np_add_NTY_symbol', 10, 2 );
+add_filter( 'woocommerce_currency_symbol', 'ntyp_add_NTY_symbol', 10, 2 );
 
 //no need login for ajax, to load blocks from Blockchain
-add_action( 'wp_ajax_nopriv_np_get_order_status_ajax', 'np_get_order_status_ajax' );
-add_action( 'wp_ajax_nopriv_np_updatedb_ajax', 'np_updatedb_ajax' );
+add_action( 'wp_ajax_nopriv_ntyp_get_order_status_ajax', 'ntyp_get_order_status_ajax' );
+add_action( 'wp_ajax_nopriv_ntyp_updatedb_ajax', 'ntyp_updatedb_ajax' );
 
 ////////////wp_ajax_[nopriv_]...... function name
 
 
-add_action( 'wp_ajax_np_updatedb_ajax', 'np_updatedb_ajax' );
+add_action( 'wp_ajax_ntyp_updatedb_ajax', 'ntyp_updatedb_ajax' );
 
-add_action( 'wp_ajax_np_get_order_status_ajax', 'np_get_order_status_ajax' );
+add_action( 'wp_ajax_ntyp_get_order_status_ajax', 'ntyp_get_order_status_ajax' );
 
-add_action( 'wp_enqueue_scripts', 'np_add_ajax_js' );
+add_action( 'wp_enqueue_scripts', 'ntyp_add_ajax_js' );
 
 //add_action( 'admin_notices',...) Check invalid Links in Admin Settings
-//np_validate_backend_inputs();
-add_action( 'admin_notices', 'np_error_notice_exchangeAPI' );
-add_action( 'admin_notices', 'np_error_notice_wallet' );
-add_action( 'admin_notices', 'np_error_notice_endPoint' );
-add_action( 'admin_notices', 'np_error_notice_blocks_min' );
-add_action( 'admin_notices', 'np_error_notice_blocks_max' );
-add_action( 'admin_notices', 'np_error_notice_blocks_load' );
-add_action( 'admin_notices', 'np_error_notice_compare_min_max' );
-add_action( 'admin_notices', 'np_error_notice_link' );
+//ntyp_validate_backend_inputs();
+add_action( 'admin_notices', 'ntyp_error_notice_exchangeAPI' );
+add_action( 'admin_notices', 'ntyp_error_notice_wallet' );
+add_action( 'admin_notices', 'ntyp_error_notice_endPoint' );
+add_action( 'admin_notices', 'ntyp_error_notice_blocks_min' );
+add_action( 'admin_notices', 'ntyp_error_notice_blocks_max' );
+add_action( 'admin_notices', 'ntyp_error_notice_blocks_load' );
+add_action( 'admin_notices', 'ntyp_error_notice_compare_min_max' );
+add_action( 'admin_notices', 'ntyp_error_notice_link' );
 
 //load jquery if not loaded
 add_action( 'wp_enqueue_scripts', function(){
@@ -82,21 +82,21 @@ add_action( 'wp_enqueue_scripts', function(){
 });
 
 //add_action( 'wp_enqueue_scripts', 'add_scripts' );
-add_action( 'wp_head', 'np_add_nextypay_js' );
+add_action( 'wp_head', 'ntyp_add_nextypay_js' );
 
-//add_action('wp_head', 'np_hook_css');
-add_action( 'admin_enqueue_scripts', 'np_hook_js' );
+//add_action('wp_head', 'ntyp_hook_css');
+add_action( 'admin_enqueue_scripts', 'ntyp_hook_js' );
 //add_action('wp_enqueue_scripts', 'hook_js');
 
-add_action( 'plugins_loaded', 'np_init_nextypay_class' );
+add_action( 'plugins_loaded', 'ntyp_init_nextypay_class' );
 
-add_action( 'woocommerce_thankyou', 'np_add_thankyou', 20 );
-add_filter( 'woocommerce_payment_gateways', 'np_add_nextypay_class' );
-add_action( 'woocommerce_checkout_process', 'np_process' );
-add_action( 'woocommerce_checkout_update_order_meta', 'np_update_order_meta' );
-add_action( 'woocommerce_admin_order_data_after_billing_address', 'np_checkout_field_display_admin_order_meta', 10, 1 );
+add_action( 'woocommerce_thankyou', 'ntyp_add_thankyou', 20 );
+add_filter( 'woocommerce_payment_gateways', 'ntyp_add_nextypay_class' );
+add_action( 'woocommerce_checkout_process', 'ntyp_process' );
+add_action( 'woocommerce_checkout_update_order_meta', 'ntyp_update_order_meta' );
+add_action( 'woocommerce_admin_order_data_after_billing_address', 'ntyp_checkout_field_display_admin_order_meta', 10, 1 );
 
-function np_init_nextypay_class(){
+function ntyp_init_nextypay_class(){
 
   class WC_Nextypay extends WC_Payment_Gateway {
 
@@ -239,7 +239,7 @@ function np_init_nextypay_class(){
     }
 
     private function test_function($data){
-        np_debug_to_console($data['QRtext'] .$data['QRtext_hex'] .$data['order_id_test'].$data['order_id_prefix_test'].$data['total_in_coin']);
+        ntyp_debug_to_console($data['QRtext'] .$data['QRtext_hex'] .$data['order_id_test'].$data['order_id_prefix_test'].$data['total_in_coin']);
 /*
       echo wpautop( wptexturize( $data['QRtext']) );
       echo wpautop( wptexturize( $data['QRtext_hex']) );
@@ -283,7 +283,7 @@ function np_init_nextypay_class(){
         echo wpautop( wptexturize( 'Payment successed. Thank you and have fun with your Shopping!') );
       } else
       {
-        $np_db_prefix=$wpdb->prefix.'nextypay_';
+        $ntyp_db_prefix=$wpdb->prefix.'nextypay_';
         $updatedb=new Nextypayupdatedb;
         $blockchain= new Nextypayblockchain;
         $functions= new Nextypayfunctions;
@@ -295,7 +295,7 @@ function np_init_nextypay_class(){
         $updatedb->set_url($this->url);
         $updatedb->set_connection($wpdb);
         $updatedb->set_includes($blockchain,$functions);
-        $updatedb->set_backend_settings($np_db_prefix,$this->store_currency_code,$this->walletAddress,
+        $updatedb->set_backend_settings($ntyp_db_prefix,$this->store_currency_code,$this->walletAddress,
           $_SERVER['HTTP_HOST'],$this->min_blocks_saved_db,$this->max_blocks_saved_db,$this->blocks_loaded_each_request);
 
         $data['store_currency_code'] = get_woocommerce_currency();

@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly
+}
+
 class Nextypaysetup {
   //public $db_prefix=$wpdb->prefix;
   public $nexty_prefix='nextypay_';

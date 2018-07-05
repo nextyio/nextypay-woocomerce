@@ -22,7 +22,7 @@ function call_ajax(startTime,order_id,timeout,interval){
 		jQuery.ajax({
       url: nextypay_ajax_obj.ajaxurl,//ajaxurl, // or example_ajax_obj.ajaxurl if using on frontend
       data: {
-          'action': 'np_updatedb_ajax'
+          'action': 'ntyp_updatedb_ajax'
       },
 		}).done(function ( response ) {
 
@@ -33,7 +33,7 @@ function call_ajax(startTime,order_id,timeout,interval){
     jQuery.ajax({
         url: nextypay_ajax_obj.ajaxurl,//ajaxurl, // or example_ajax_obj.ajaxurl if using on frontend
         data: {
-            'action': 'np_get_order_status_ajax',
+            'action': 'ntyp_get_order_status_ajax',
             'order_id' : order_id
         },
         success:function(response) {
