@@ -28,6 +28,12 @@ $nextypay_js_url	= $nextypay_url.'assets/js/';
 $nextypay_css_url	= $nextypay_url.'assets/css/';
 $nextypay_lib_url = $nextypay_url.'lib/' ;
 
+//Add frontend styles for the calendar page:
+$pluginURL = plugins_url("",__FILE__);
+$CSSURL = "$pluginURL/assets/css/nextypay.css";//change to your filename and path
+wp_register_style( 'frontend_CSS', $CSSURL);
+wp_enqueue_style('frontend_CSS');
+
 include_once $nextypay_lib_url.'nextypayblockchain.php';
 include_once $nextypay_lib_url.'nextypayfunctions.php';
 include_once $nextypay_lib_url.'nextypayexchange.php';
