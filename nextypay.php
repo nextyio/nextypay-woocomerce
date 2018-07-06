@@ -324,8 +324,8 @@ function ntyp_init_nextypay_class(){
         $data['QRtextencode']= urlencode ( $data['QRtext'] );
 
         echo wpautop( wptexturize('Waiting for your Payment... Page will be redirected after the payment.'));
-        echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>" ) );
-
+        //echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = '".get_site_url()."/wp-content/plugins/nextypay/images/Loading.gif'/>" ) );
+        echo wpautop( wptexturize( "<img style ='width:30px; display: inline ' src = 'wp-includes/js/tinymce/skins/lightgray/img/loader.gif'/>" ) );
         //Apps Link
         echo wpautop( wptexturize('<p><a href="https://play.google.com/store/apps/details?id=io.nexty.wallet">Click here to download Android payment app</a></p>'));
         echo wpautop( wptexturize('<p><a href="https://nexty.io/ios">Click here to download IOS payment app</a></p>'));
