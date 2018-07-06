@@ -3,7 +3,7 @@
  * Plugin Name: Nexty Payment
  * Plugin URI: https://github.com/nextyio/nextypay-woocomerce
  * Description: A payment method with Nexty Coin (NTY).
- * Version: 1.0.0
+ * Version: 1.0
  * Author: Thang Nguyen
  * Author URI: https://github.com/bestboyvn87
  * Copyright: © 2018 Fredo / Nexty.
