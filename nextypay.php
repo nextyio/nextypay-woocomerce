@@ -202,7 +202,7 @@ function ntyp_init_nextypay_class(){
             'title'       => __( 'WalletAddress', $this->domain ),
             'type'        => 'text',
             'description' => __( 'Wallet Address description.', $this->domain ),
-            'default'     => '0x3489fffae8ca8685dea7b7cd44b19b3d5fb9a5c6',
+            'default'     => '0x915584799f4a52da3807aef514d06e6a952808de',
             'desc_tip'    => true,
         ),
         'exchangeAPI' => array(
