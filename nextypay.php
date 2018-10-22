@@ -3,7 +3,7 @@
  * Plugin Name: Nexty Payment
  * Plugin URI: https://github.com/nextyio/nextypay-woocomerce
  * Description: A payment method with Nexty Coin (NTY).
- * Version: 1.0
+ * Version: 1.1
  * Author: Thang Nguyen
  * Author URI: https://github.com/bestboyvn87
  * Copyright: © 2018 Fredo / Nexty.
@@ -14,7 +14,7 @@
  * WC tested up to: 3.3
  * WC requires at least: 2.6
  */
-
+define('WP_DEBUG', true); 
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
@@ -140,7 +140,14 @@ function ntyp_init_nextypay_class(){
       $this->description = $this->get_option( 'description' );
       $this->instruction = $this->get_option( 'instruction', $this->instruction );
       $this->order_status = $this->get_option( 'order_status', 'completed' );
-			$this->walletAddress = $this->get_option( 'walletAddress' );
+            $this->walletAddress = $this->get_option( 'walletAddress' );
+            $this->mid = $this->get_option( 'mid' );
+            $this->shopId = $this->get_option( 'shopId' );
+            $this->apiUrl = $this->get_option( 'apiUrl' );
+            $this->apiKey = $this->get_option( 'apiKey' );
+            $this->secretKey = $this->get_option( 'secretKey' );
+
+
 			$this->exchangeAPI = $this->get_option( 'exchangeAPI' );
 			$this->endPointAddress = $this->get_option( 'endPointAddress' );
 			$this->min_blocks_saved_db = $this->get_option( 'min_blocks_saved_db' );
@@ -153,6 +160,7 @@ function ntyp_init_nextypay_class(){
       add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
       add_action( 'woocommerce_thankyou_order_received_text', array( $this, 'woo_change_order_received_text' ),10,2 );
       add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instruction' ), 10, 3 );
+      add_action( 'woocommerce_api_nextypaycallback', array( $this, 'webhook' ) );
     }
 
     /**
@@ -198,11 +206,46 @@ function ntyp_init_nextypay_class(){
             'default'     => 'Nexty payment default instruction',
             'desc_tip'    => true,
         ),
+        'mid' => array(
+            'title'       => __( 'Merchant ID', $this->domain ),
+            'type'        => 'number',
+            'description' => __( 'Merchant ID.', $this->domain ),
+            'default'     => '',
+            'desc_tip'    => true,
+        ),
+        'shopId' => array(
+            'title'       => __( 'Shop ID', $this->domain ),
+            'type'        => 'text',
+            'description' => __( 'Shop ID.', $this->domain ),
+            'default'     => '',
+            'desc_tip'    => true,
+        ),
         'walletAddress' => array(
             'title'       => __( 'WalletAddress', $this->domain ),
             'type'        => 'text',
             'description' => __( 'Wallet Address description.', $this->domain ),
             'default'     => '0x915584799f4a52da3807aef514d06e6a952808de',
+            'desc_tip'    => true,
+        ),
+        'apiUrl' => array(
+            'title'       => __( 'Gateway API Url', $this->domain ),
+            'type'        => 'text',
+            'description' => __( 'Gateway API Url.', $this->domain ),
+            'default'     => '',
+            'desc_tip'    => true,
+        ),
+        'apiKey' => array(
+            'title'       => __( 'API Key', $this->domain ),
+            'type'        => 'text',
+            'description' => __( 'API Key.', $this->domain ),
+            'default'     => '',
+            'desc_tip'    => true,
+        ),
+        'secretKey' => array(
+            'title'       => __( 'Secret Key', $this->domain ),
+            'type'        => 'text',
+            'description' => __( 'Secret Key.', $this->domain ),
+            'default'     => '',
             'desc_tip'    => true,
         ),
         'exchangeAPI' => array(
@@ -287,6 +330,10 @@ function ntyp_init_nextypay_class(){
     public function woo_change_order_received_text( $str, $order ){
       global $wpdb;
       $order_status = wc_get_order( $order)->status;
+      return array(
+        'result'    => 'success',
+        'redirect'  => $this->get_return_url( $order )
+    );
       echo wpautop( wptexturize("<h3>$this->instruction</h3>"));
       if ($order_status=='completed') {
         echo wpautop( wptexturize( 'Payment successed. Thank you and have fun with your Shopping!') );
@@ -410,16 +457,72 @@ function ntyp_init_nextypay_class(){
 
         // Remove cart
         WC()->cart->empty_cart();
+        $wpRootFolder = get_option( 'home' );
+        $callbackUrl = $wpRootFolder. '/wc-api/nextypaycallback/';
+        $returnUrl = $order->get_view_order_url();
+        $shopId = $this->shopId;
+        $orderId = $order_id;
+        $mid = $this->mid;
+        $apiKey = $this->apiKey;
+        $amount = $order->get_total();
+        $currency = get_woocommerce_currency();
+        $toWallet = $this->walletAddress;
 
-        // Return thankyou redirect
+        $payload = array(
+            "callbackUrl" => $callbackUrl, 
+            "returnUrl" => $returnUrl,
+            "mid" => $mid,
+            "toWallet" => $toWallet,
+            "shopId" => $shopId,
+            "orderId" => $orderId,
+            "apiKey" => $apiKey,
+            "amount" => $amount,
+            "currency" => $currency,
+        );
+        
+        //use this if you need to redirect the user to the payment page of the bank.
+        $querystring = http_build_query( $payload );
+        // return your form with the needed parameters
         return array(
             'result'    => 'success',
-            'redirect'  => $this->get_return_url( $order )
+            'redirect' => $this->apiUrl. '?' . $querystring,
         );
     }
+    private function order_status_to_complete($order_id){
+        $order = new WC_Order($order_id);
+        $order->update_status('completed');
+        return;
+      }
 
 	  public function webhook() {
-		return; //disable callback for pending payment
+        $success = ($_POST["status"] == 'Paid');
+        $invoiceId = $_POST["orderId"];
+        $transactionId = $_POST["reqId"];
+        $paymentAmount = $_POST["amount"];
+        $paymentFee = $_POST["fee"];
+        $hash = $_POST["hash"];
+        $transactionStatus = $success ? 'Success' : 'Failure';
+        /**
+         * Validate callback authenticity.
+         *
+         * Most payment gateways provide a method of verifying that a callback
+         * originated from them. In the case of our example here, this is achieved by
+         * way of a shared secret which is used to build and compare a hash.
+         */
+        $secretKey = $this->secretKey;
+        if ($hash != md5($invoiceId . $transactionId . $paymentAmount . $secretKey)) {
+            $transactionStatus = 'Hash Verification Failure';
+            $success = false;
+        }
+        if (!$success) exit();
+        header("Content-Type: text/plain");
+        print_r( 'Ok' );
+        exit();
+          //$order_id = $_GET['order_id'];
+          //$this->order_status_to_complete($order_id);
+          print_r( 'test' );
+        //sprintf( __( 'Card payment failed.') );
+		return  new WP_Error( 'code', __( 'message', 'text-domain' ) );//disable callback for pending payment
 	  }
 
   }

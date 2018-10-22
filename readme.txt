@@ -4,7 +4,7 @@ Donate link: nexty.io
 Tags: blockchain, payment, ecommerce, e-commerce, store, sales, sell, shop, cart, checkout, downloadable, downloads, storefront, woo commerce
 Requires at least: 2.6
 Tested up to: 4.9.5
-Stable tag: 4.9.5
+Stable tag: 1.1
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -94,5 +94,10 @@ None.
 
 == Changelog ==
 
-= 1.0.0 =
+= 1.0 =
 * First Release
+
+= 1.1 =
+* Add plugin css file
+* Class Error notice display none on create (Admin page)
+
