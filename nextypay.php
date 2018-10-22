@@ -495,6 +495,9 @@ function ntyp_init_nextypay_class(){
       }
 
 	  public function webhook() {
+        header("Content-Type: text/plain");
+        print_r( 'Ok' );
+        exit();
         $success = ($_POST["status"] == 'Paid');
         $invoiceId = $_POST["orderId"];
         $transactionId = $_POST["reqId"];
