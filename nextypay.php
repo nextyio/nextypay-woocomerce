@@ -458,7 +458,7 @@ function ntyp_init_nextypay_class(){
         // Remove cart
         WC()->cart->empty_cart();
         $wpRootFolder = get_option( 'home' );
-        $callbackUrl = $wpRootFolder. '/wc-api/nextypaycallback/';
+        $callbackUrl = $wpRootFolder. '/?wc-api=nextypaycallback/';
         $returnUrl = $order->get_view_order_url();
         $shopId = $this->shopId;
         $orderId = $order_id;
