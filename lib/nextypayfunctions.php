@@ -5,27 +5,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class Nextypayfunctions{
-  public static $instance;
-
-/**
- * @param  object  $registry  Registry Object
- */
-
-  public static function get_instance($registry) {
-    if (is_null(static::$instance)) {
-      static::$instance = new static($registry);
-    }
-
-    return static::$instance;
-  }
-
-  public function getQRCode($walletAddress,$order_id,$order_total)
-  {
-      $QRtext='{"walletaddress": "'.$walletAddress.'","uoid": "'.$order_id.'","amount": "'.$order_total.'"}  ';
-      $QRtext_hex="0x".$this->strToHex($QRtext);
-      $QRtextencode= urlencode ( $QRtext_hex );
-      return $QRtextencode;
-  }
 
   public function strToHex($string){
 
